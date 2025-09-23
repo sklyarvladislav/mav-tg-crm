@@ -1,4 +1,5 @@
-from dishka import Provider, Scope, provide_all 
+from dishka import Provider, Scope, provide_all
+
 
 class UsecaseProvider(Provider):
     _get_usecases = provide_all(

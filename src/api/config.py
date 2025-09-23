@@ -1,13 +1,14 @@
-import os 
+import os
 from dataclasses import dataclass
 
-from adaptix import Retort 
+from adaptix import Retort
 from dynaconf import Dynaconf
 
 
 @dataclass(slots=True)
 class Config:
     pass
+
 
 def get_config() -> Config:
     dynaconf = Dynaconf(
@@ -20,7 +21,8 @@ def get_config() -> Config:
         env_switcher="MAV_ENV",
     )
     retort = Retort()
-    
+
     return retort.load(dynaconf, Config)
+
 
 config: Config = get_config()
