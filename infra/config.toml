@@ -1,5 +1,0 @@
-[default]
-[default.logging]
-level = "DEBUG"
-disabled_log_endpoints = [""]
-logger_body_content_max_size = 1024
