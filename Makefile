@@ -13,6 +13,9 @@ compose:
 watch:
 	docker-compose -f ./infra/docker-compose.yaml up --build --watch
 
+down:
+	docker-compose -f ./infra/docker-compose.yaml down
+
 lint:
 	uv run ruff check --fix
 	uv run ruff format
