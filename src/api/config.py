@@ -6,8 +6,16 @@ from dynaconf import Dynaconf
 
 
 @dataclass(slots=True)
+class LoggingConfig:
+    level: str
+    human_readable_logs: bool = True
+    disabled_log_endpoints: list[str] = None
+    logger_body_content_max_size: int = 1024
+
+
+@dataclass(slots=True)
 class Config:
-    pass
+    logging: LoggingConfig
 
 
 def get_config() -> Config:

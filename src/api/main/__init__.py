@@ -1,5 +1,5 @@
 from dishka import make_async_container
-from dishka.integrations.fastapi import setup_dishka_fastapi
+from dishka.integrations.fastapi import setup_dishka
 from structlog import get_logger
 from src.config import Config, config
 from src.main.di import DishkaProvider
@@ -14,4 +14,4 @@ container = make_async_container(
     DishkaProvider(), UsecaseProvider(), context={Config: config}
 )
 
-setup_dishka_fastapi(container, app)
+setup_dishka(container, app)
