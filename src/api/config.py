@@ -6,6 +6,11 @@ from dynaconf import Dynaconf
 
 
 @dataclass(slots=True)
+class BotConfig:
+    token: str
+
+
+@dataclass(slots=True)
 class LoggingConfig:
     level: str
     human_readable_logs: bool = True
