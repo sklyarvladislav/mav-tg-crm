@@ -1,20 +1,48 @@
+version: "3.9"
+
 services:
-  mav-tg-crm:
+  web:
     build:
       context: ..
       target: development-image
       dockerfile: ./infra/Dockerfile
+    container_name: mav_web
     environment:
       CONFIG_FILE: "/etc/config.toml"
       MAV_ENV: "docker"
+    command: >
+      /bin/uv run uvicorn src.api.main:app
+      --host 0.0.0.0 --port 80 --reload --reload-include *.py,*.toml
     ports:
       - "8000:80"
     configs:
       - source: backend_config
         target: /etc/config.toml
     volumes:
-      - ../src/api:/app/src:ro
+      - ../src:/app/src:ro
+    develop:
+      watch:
+        - action: rebuild
+          path: ../src
+          target: /app/src
 
+  bot:
+    build:
+      context: ..
+      target: development-image
+      dockerfile: ./infra/Dockerfile
+    container_name: mav_bot
+    environment:
+      CONFIG_FILE: "/etc/config.toml"
+      MAV_ENV: "docker"
+      PYTHONPATH: "/app"
+    command: >
+      /bin/uv run python src/bot/bot.py
+    configs:
+      - source: backend_config
+        target: /etc/config.toml
+    volumes:
+      - ../src:/app/src:ro
     develop:
       watch:
         - action: rebuild

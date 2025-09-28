@@ -1,6 +1,6 @@
 from dishka import Provider, Scope, from_context
 
-from src.config import Config
+from src.core.config import Config
 
 
 class DishkaProvider(Provider):
