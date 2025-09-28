@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "adaptix>=3.0.0b11",
+    "aiogram>=3.22.0",
     "dishka>=1.7.1",
     "dynaconf>=3.2.11",
     "fastapi>=0.117.1",

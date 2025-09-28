@@ -1,10 +1,10 @@
 from dishka import make_async_container
 from dishka.integrations.fastapi import setup_dishka
 from structlog import get_logger
-from src.config import Config, config
-from src.main.di import DishkaProvider
-from src.presentation.fastapi.setup import setup_fastapi
-from src.usecases.provider import UsecaseProvider
+from src.core.config import Config, config
+from src.api.main.di import DishkaProvider
+from src.api.presentation.fastapi.setup import setup_fastapi
+from src.api.usecases.provider import UsecaseProvider
 
 logger = get_logger()
 

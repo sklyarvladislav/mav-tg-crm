@@ -14,8 +14,14 @@ class LoggingConfig:
 
 
 @dataclass(slots=True)
+class BotConfig:
+    token: str
+
+
+@dataclass(slots=True)
 class Config:
     logging: LoggingConfig
+    bot: BotConfig
 
 
 def get_config() -> Config:

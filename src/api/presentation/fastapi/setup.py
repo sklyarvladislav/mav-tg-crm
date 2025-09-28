@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from structlog import get_logger
 
-from src.config import Config
-from src.presentation.fastapi.routes.setup import setup_routes
+from src.core.config import Config
+from src.api.presentation.fastapi.routes.setup import setup_routes
 
 logger = get_logger()
 
