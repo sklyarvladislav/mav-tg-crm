@@ -3,3 +3,6 @@
 level = "DEBUG"
 disabled_log_endpoints = ["/healthcheck", "/api", "/openapi.json"]
 logger_body_content_max_size = 1024
+
+[default.bot]
+token = "t"
