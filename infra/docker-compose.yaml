@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   web:
     build:
@@ -7,6 +5,8 @@ services:
       target: development-image
       dockerfile: ./infra/Dockerfile
     container_name: mav_web
+    depends_on:
+     - postgres
     environment:
       CONFIG_FILE: "/etc/config.toml"
       MAV_ENV: "docker"
@@ -49,6 +49,23 @@ services:
           path: ../src
           target: /app/src
 
+  postgres:
+    image: postgres:18-alpine3.22
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
 configs:
   backend_config:
     file: config.toml
+
+volumes:
+  postgres-data:

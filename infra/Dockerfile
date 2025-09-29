@@ -21,6 +21,6 @@ WORKDIR $PROJECT_PATH
 
 # Копируем src в контейнер
 COPY --chown=user:user ../src $PROJECT_PATH/src 
-
+COPY --chown=user:user ../alembic.ini $PROJECT_PATH/alembic.ini
 # Команда по умолчанию (будет переопределяться в docker-compose)
 CMD ["/bin/sh"]
