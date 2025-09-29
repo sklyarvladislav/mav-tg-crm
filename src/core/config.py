@@ -6,8 +6,18 @@ from dynaconf import Dynaconf
 
 
 @dataclass(slots=True)
-class BotConfig:
-    token: str
+class DatabaseConfig:
+    host: str
+    port: int
+    username: str
+    password: str
+    database: str
+    driver: str = "postgresql+asyncpg"
+
+    @property
+    def dsn(self) -> str:
+        """ "Сборка dsn для базы данных."""
+        return f"{self.driver}://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
 
 
 @dataclass(slots=True)
@@ -25,6 +35,7 @@ class BotConfig:
 
 @dataclass(slots=True)
 class Config:
+    database: DatabaseConfig
     logging: LoggingConfig
     bot: BotConfig
 

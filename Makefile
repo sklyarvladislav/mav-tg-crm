@@ -8,7 +8,7 @@ GID=$(shell id -g)
 UID=$(shell id -u)
 
 compose:
-	docker-compose -f ./infra/docker-compose.yaml up --build -d
+	docker-compose -f ./infra/docker-compose.yaml up --build -d --remove-orphans
 
 watch:
 	docker-compose -f ./infra/docker-compose.yaml up --build --watch
