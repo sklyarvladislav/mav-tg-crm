@@ -14,14 +14,19 @@ from sqlalchemy.sql.dml import Update
 from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.schema import Column
 
-from src.api.application.schemas.common import PagePaginatedSchema, PaginationSchema
+from src.api.application.schemas.common import (
+    PagePaginatedSchema,
+    PaginationSchema,
+)
 from src.api.infra.database.errors import (
     CreateError,
     DatabaseError,
     NotFoundError,
     UpdateError,
 )
-from src.api.infra.database.services.pagination.offset import OffsetPaginationService
+from src.api.infra.database.services.pagination.offset import (
+    OffsetPaginationService,
+)
 from src.api.infra.database.services.query_composer import QueryComposer
 
 logger = structlog.get_logger()
@@ -40,7 +45,9 @@ WhereClause = ColumnElement[bool]
 
 @dataclass(kw_only=True)
 class WhereClauseMixin:
-    _query: Select | Insert | Update | Delete | None = field(default=None, init=False)
+    _query: Select | Insert | Update | Delete | None = field(
+        default=None, init=False
+    )
 
     def with_condition(self, *conditions: WhereClause):
         self._query = self._query.where(*conditions)
@@ -99,11 +106,14 @@ class GetPaginatedGate[TTable]:
 
         result = await self.session.execute(
             self.pagination_service.paginate_query(
-                QueryComposer(select(self.table), modifiers).build(), pagination
+                QueryComposer(select(self.table), modifiers).build(),
+                pagination,
             )
         )
 
-        return retort.load(result.mappings().first(), PagePaginatedSchema[self.table])
+        return retort.load(
+            result.mappings().first(), PagePaginatedSchema[self.table]
+        )
 
 
 @dataclass(kw_only=True)
@@ -122,7 +132,9 @@ class CreateGate[TTable, TCreate](PostgresGate, ReturningMixin[TTable]):
         self._omit.update(*fields)
         return self
 
-    def with_field(self, field: str, value: Any) -> "CreateGate[TTable, TCreate]":
+    def with_field(
+        self, field: str, value: Any
+    ) -> "CreateGate[TTable, TCreate]":
         self._extra_insert[field] = value
         return self
 
@@ -134,18 +146,26 @@ class CreateGate[TTable, TCreate](PostgresGate, ReturningMixin[TTable]):
 
     async def __call__(self, entity: TCreate) -> TTable | None:
         stmt = self._query.values(
-            **{f: v for f, v in retort.dump(entity).items() if f not in self._omit},
+            **{
+                f: v
+                for f, v in retort.dump(entity).items()
+                if f not in self._omit
+            },
             **self._extra_insert,
         )
         try:
             result = await self.session.execute(stmt)
             if result is None:
-                raise CreateError(model_name=str(self.table), error="no result")
+                raise CreateError(
+                    model_name=str(self.table), error="no result"
+                )
             if not self._returning:
                 return None
             result = result.scalar_one_or_none()
             if result is None:
-                raise CreateError(model_name=str(self.table), error="no result")
+                raise CreateError(
+                    model_name=str(self.table), error="no result"
+                )
             return result
         except IntegrityError as e:
             raise CreateError(model_name=str(self.table), error=str(e)) from e
@@ -214,7 +234,9 @@ class UpdateGate[TTable, TUpdate](
         self._omit.update(*fields)
         return self
 
-    def with_field(self, field: str, value: Any) -> "UpdateGate[TTable, TUpdate]":
+    def with_field(
+        self, field: str, value: Any
+    ) -> "UpdateGate[TTable, TUpdate]":
         self._extra_insert[field] = value
         return self
 
@@ -224,11 +246,15 @@ class UpdateGate[TTable, TUpdate](
             result = await self.session.execute(stmt)
             if not self._returning:
                 if result.rowcount == 0:
-                    raise UpdateError(model_name=str(self.table), error="no result")
+                    raise UpdateError(
+                        model_name=str(self.table), error="no result"
+                    )
                 return None
             result = result.scalar_one_or_none()
             if result is None:
-                raise UpdateError(model_name=str(self.table), error="no result")
+                raise UpdateError(
+                    model_name=str(self.table), error="no result"
+                )
 
             return result
         except IntegrityError as e:

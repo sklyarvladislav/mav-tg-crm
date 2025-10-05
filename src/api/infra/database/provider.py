@@ -22,8 +22,12 @@ from src.api.infra.database.common import (
     UpdateGate,
 )
 from src.api.infra.database.core.version.gates import GetVersionsGate
-from src.api.infra.database.services.pagination.cursor import CursorPaginationService
-from src.api.infra.database.services.pagination.offset import OffsetPaginationService
+from src.api.infra.database.services.pagination.cursor import (
+    CursorPaginationService,
+)
+from src.api.infra.database.services.pagination.offset import (
+    OffsetPaginationService,
+)
 
 logger = structlog.get_logger()
 
@@ -44,8 +48,12 @@ class DatabaseProvider(Provider):
                 await engine.dispose()
 
     @provide(scope=Scope.REQUEST)
-    async def _get_session(self, engine: AsyncEngine) -> AsyncIterable[AsyncSession]:
-        async with async_sessionmaker(engine, expire_on_commit=False)() as session:
+    async def _get_session(
+        self, engine: AsyncEngine
+    ) -> AsyncIterable[AsyncSession]:
+        async with async_sessionmaker(
+            engine, expire_on_commit=False
+        )() as session:
             yield session
 
     _get_services = provide_all(

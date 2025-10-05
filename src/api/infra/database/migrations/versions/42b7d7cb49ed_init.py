@@ -25,7 +25,9 @@ def upgrade() -> None:
     op.create_table(
         "settings",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("settings", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column(
+            "settings", postgresql.JSONB(astext_type=sa.Text()), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id"),
         schema="mav_schema",
     )

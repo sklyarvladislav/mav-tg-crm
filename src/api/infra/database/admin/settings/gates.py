@@ -12,7 +12,9 @@ class GetSettingsGate(PostgresGate):
     async def __call__(self) -> Settings:
         """Получает объект настроек или создаёт пустой, если не существует."""
         result = (
-            await self.session.execute(select(Settings).where(Settings.id == 1))
+            await self.session.execute(
+                select(Settings).where(Settings.id == 1)
+            )
         ).scalar_one_or_none()
         if not result:
             result = (
