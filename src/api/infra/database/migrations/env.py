@@ -6,9 +6,9 @@ from alembic import context
 from sqlalchemy import Connection, pool, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from src.core.config import get_config
 from src.api.infra.database.tables import enabled_pg_schemas
 from src.api.infra.database.tables import metadata as target_metadata
+from src.core.config import get_config
 
 cfg = get_config()
 
@@ -33,7 +33,7 @@ for schema in target_schemas:
         )
 
 
-def include_object(object, name, type_, reflected, compare_to):
+def include_object(object, name, type_, reflected, compare_to) -> None:
     """Функция-признак, показывающая, учитывается ли объект при автогенрации.
 
     Вызываемая функция, которой предоставляется возможность вернуть True или False
@@ -90,7 +90,7 @@ def include_name(name, type_, parent_names) -> bool:
     return True
 
 
-def process_revision_directives(context, revision, directives):
+def process_revision_directives(context, revision, directives) -> None:
     """Этот код нужен для тестирования алембик миграций.
 
     Вызываемая функция, которой будет передана структура, представляющая конечный
@@ -182,9 +182,13 @@ async def run_migrations_online() -> None:
 
     async with connectable.connect() as connection:
         # Создаем схему версии
-        await connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {version_schema}"))
+        await connection.execute(
+            text(f"CREATE SCHEMA IF NOT EXISTS {version_schema}")
+        )
         for target in target_schemas:
-            await connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {target}"))
+            await connection.execute(
+                text(f"CREATE SCHEMA IF NOT EXISTS {target}")
+            )
         await connection.commit()
         await connection.run_sync(do_run_migrations)
 

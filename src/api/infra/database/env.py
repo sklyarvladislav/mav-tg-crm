@@ -5,7 +5,6 @@ from typing import cast
 from alembic import context
 from sqlalchemy import Connection, pool, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
 from src.config import get_config
 from src.infra.database.tables import enabled_pg_schemas
 from src.infra.database.tables import metadata as target_metadata
@@ -182,9 +181,13 @@ async def run_migrations_online() -> None:
 
     async with connectable.connect() as connection:
         # Создаем схему версии
-        await connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {version_schema}"))
+        await connection.execute(
+            text(f"CREATE SCHEMA IF NOT EXISTS {version_schema}")
+        )
         for target in target_schemas:
-            await connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {target}"))
+            await connection.execute(
+                text(f"CREATE SCHEMA IF NOT EXISTS {target}")
+            )
         await connection.commit()
         await connection.run_sync(do_run_migrations)
 
