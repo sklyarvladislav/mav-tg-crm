@@ -13,21 +13,22 @@ from sqlalchemy.sql import Delete, Insert, Select
 from sqlalchemy.sql.dml import Update
 from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.schema import Column
-
 from src.api.application.schemas.common import (
     PagePaginatedSchema,
     PaginationSchema,
 )
+from src.api.infra.database.services.pagination.offset import (
+    OffsetPaginationService,
+)
+from src.api.infra.database.services.query_composer import QueryComposer
+from typing_extensions import Self
+
 from src.api.infra.database.errors import (
     CreateError,
     DatabaseError,
     NotFoundError,
     UpdateError,
 )
-from src.api.infra.database.services.pagination.offset import (
-    OffsetPaginationService,
-)
-from src.api.infra.database.services.query_composer import QueryComposer
 
 logger = structlog.get_logger()
 
@@ -49,23 +50,23 @@ class WhereClauseMixin:
         default=None, init=False
     )
 
-    def with_condition(self, *conditions: WhereClause):
+    def with_condition(self, *conditions: WhereClause) -> Self:
         self._query = self._query.where(*conditions)
         return self
 
-    def with_id(self, id: Any, field: str = "id"):
-        self._query = self._query.where(Column(field) == id)
+    def with_id(self, ids: list[Any], field: str = "id") -> Self:
+        self._query = self._query.where(Column(field) == ids)
         return self
 
-    def with_ids(self, id: Any, field: str = "id"):
-        self._query = self._query.where(Column(field).in_(id))
-        return self
-
-    def with_bulk_id(self, ids: list[Any], field: str = "id"):
+    def with_ids(self, ids: list[Any], field: str = "id") -> Self:
         self._query = self._query.where(Column(field).in_(ids))
         return self
 
-    def with_user(self, user_id: UUID, field: str = "created_by"):
+    def with_bulk_id(self, ids: list[Any], field: str = "id") -> Self:
+        self._query = self._query.where(Column(field).in_(ids))
+        return self
+
+    def with_user(self, user_id: UUID, field: str = "created_by") -> Self:
         self._query = self._query.where(Column(field) == user_id)
         return self
 
@@ -81,7 +82,7 @@ class ReturningMixin[TTable]:
         self._query = self._query.returning(self.table)
         return self
 
-    async def __call__(self, *args: Any, **kwds: Any) -> TTable: ...
+    async def __call__(self, *args: object, **kwds: object) -> TTable: ...
 
 
 @dataclass(kw_only=True)
@@ -99,8 +100,8 @@ class GetPaginatedGate[TTable]:
     async def __call__[TFilter, TOrder](
         self,
         pagination: PaginationSchema,
-        filtering: TFilter | None = None,
-        ordering: TOrder | None = None,
+        _filtering: TFilter | None = None,
+        _ordering: TOrder | None = None,
     ) -> PagePaginatedSchema[TTable]:
         modifiers = []
 
@@ -125,7 +126,7 @@ class CreateGate[TTable, TCreate](PostgresGate, ReturningMixin[TTable]):
     _extra_insert: dict[str, Any] = field(default_factory=dict, init=False)
     _omit: set[str] = field(default_factory=set, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._query = insert(self.table)
 
     def with_omit(self, *fields: str) -> "CreateGate[TTable, TCreate]":
@@ -133,7 +134,7 @@ class CreateGate[TTable, TCreate](PostgresGate, ReturningMixin[TTable]):
         return self
 
     def with_field(
-        self, field: str, value: Any
+        self, field: str, value: object
     ) -> "CreateGate[TTable, TCreate]":
         self._extra_insert[field] = value
         return self
@@ -178,7 +179,7 @@ class GetOneGate[TTable](PostgresGate, WhereClauseMixin):
     _query: Select = field(init=False)
     _omit: set[str] = field(default_factory=set, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._query = select(self.table)
 
     async def __call__(self) -> TTable:
@@ -196,7 +197,7 @@ class DeleteGate[TTable](PostgresGate, WhereClauseMixin):
     _query: Delete = field(init=False)
     _truncate: bool = field(default=False, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._query = delete(self.table)
 
     def truncate(self) -> "DeleteGate[TTable]":
@@ -227,7 +228,7 @@ class UpdateGate[TTable, TUpdate](
     _extra_insert: dict[str, Any] = field(default_factory=dict, init=False)
     _omit: set[str] = field(default_factory=set, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._query = update(self.table)
 
     def with_omit(self, *fields: str) -> "UpdateGate[TTable, TUpdate]":
@@ -235,7 +236,7 @@ class UpdateGate[TTable, TUpdate](
         return self
 
     def with_field(
-        self, field: str, value: Any
+        self, field: str, value: object
     ) -> "UpdateGate[TTable, TUpdate]":
         self._extra_insert[field] = value
         return self

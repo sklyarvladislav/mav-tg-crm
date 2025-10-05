@@ -8,7 +8,7 @@ retort = Retort()
 
 
 def update_schema(schema: type) -> type:
-    def __check_if_any_none(self) -> None:
+    def __check_if_any_none(self: "schema") -> None:
         if all(getattr(self, field.name) is None for field in fields(self)):
             raise UpdateError(
                 error="Хотя бы одно поле должен быть заполненным",

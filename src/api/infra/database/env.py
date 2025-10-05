@@ -5,7 +5,6 @@ from typing import cast
 from alembic import context
 from sqlalchemy import Connection, pool, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
 from src.config import get_config
 from src.infra.database.tables import enabled_pg_schemas
 from src.infra.database.tables import metadata as target_metadata

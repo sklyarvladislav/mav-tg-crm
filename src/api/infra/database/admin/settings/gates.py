@@ -19,11 +19,9 @@ class GetSettingsGate(PostgresGate):
         if not result:
             result = (
                 await self.session.execute(
-                    (
-                        insert(Settings)
-                        .values(id=1, settings=text("'{}'::jsonb"))
-                        .returning(Settings)
-                    )
+                    insert(Settings)
+                    .values(id=1, settings=text("'{}'::jsonb"))
+                    .returning(Settings)
                 )
             ).scalar_one_or_none()
         return result
@@ -35,22 +33,18 @@ class UpdateSettingsGate(PostgresGate):
         """Update the base prompt."""
         result = (
             await self.session.execute(
-                (
-                    update(Settings)
-                    .where(Settings.id == 1)
-                    .values(settings=settings)
-                    .returning(Settings)
-                )
+                update(Settings)
+                .where(Settings.id == 1)
+                .values(settings=settings)
+                .returning(Settings)
             )
         ).scalar_one_or_none()
         if not result:
             result = (
                 await self.session.execute(
-                    (
-                        insert(Settings)
-                        .values(id=1, settings=settings)
-                        .returning(Settings)
-                    )
+                    insert(Settings)
+                    .values(id=1, settings=settings)
+                    .returning(Settings)
                 )
             ).scalar_one_or_none()
         return result

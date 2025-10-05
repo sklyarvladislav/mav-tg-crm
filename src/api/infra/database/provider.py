@@ -8,8 +8,13 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from src.api.infra.database.services.pagination.cursor import (
+    CursorPaginationService,
+)
+from src.api.infra.database.services.pagination.offset import (
+    OffsetPaginationService,
+)
 
-from src.core.config import Config
 from src.api.infra.database.admin.settings.gates import (
     GetSettingsGate,
     UpdateSettingsGate,
@@ -22,12 +27,7 @@ from src.api.infra.database.common import (
     UpdateGate,
 )
 from src.api.infra.database.core.version.gates import GetVersionsGate
-from src.api.infra.database.services.pagination.cursor import (
-    CursorPaginationService,
-)
-from src.api.infra.database.services.pagination.offset import (
-    OffsetPaginationService,
-)
+from src.core.config import Config
 
 logger = structlog.get_logger()
 
@@ -42,7 +42,7 @@ class DatabaseProvider(Provider):
 
             yield engine
         except ConnectionRefusedError as e:
-            logger.error("Error connecting to database", e)
+            logger.error("Error connecting to database", error=e)
         finally:
             if engine is not None:
                 await engine.dispose()

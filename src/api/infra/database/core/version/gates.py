@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 from sqlalchemy import func, select
-
 from src.api.application.schemas.version import FullVersionSchema
+
 from src.api.infra.database.common import PostgresGate
 from src.api.infra.database.tables import Version
 

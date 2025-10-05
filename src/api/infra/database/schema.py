@@ -4,7 +4,6 @@ from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import UnaryExpression, asc, desc
-
 from src.application.enums.base import BaseENUM
 
 

@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 
-from src.api.infra.database.admin.schema import update_schema
 from src.api.infra.database.services.filtering.schema import Filter
 from src.api.infra.database.services.ordering.schema import OrderEnum
+
+from src.api.infra.database.admin.schema import update_schema
 
 
 @dataclass(slots=True)
