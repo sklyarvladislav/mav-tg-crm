@@ -20,7 +20,9 @@ class BaseDB:
     __tablename__: str
 
 
-def group_by_fields(table: Table | BaseDB, exclude: list[str] | None = None) -> list:
+def group_by_fields(
+    table: Table | BaseDB, exclude: list[str] | None = None
+) -> list:
     """Берем имена всех колонок для группировки.
 
     Returns:

@@ -4,5 +4,5 @@ router = APIRouter()
 
 
 @router.get("/healtcheck", tags=["Healtcheck"])
-async def healtcheck():
+async def healtcheck() -> dict:
     return {200: "success"}

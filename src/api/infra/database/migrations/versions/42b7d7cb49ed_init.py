@@ -8,8 +8,8 @@ Create Date: 2025-09-30 01:16:37.357709
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -25,7 +25,9 @@ def upgrade() -> None:
     op.create_table(
         "settings",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("settings", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column(
+            "settings", postgresql.JSONB(astext_type=sa.Text()), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id"),
         schema="mav_schema",
     )

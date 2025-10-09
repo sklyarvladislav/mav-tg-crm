@@ -1,11 +1,12 @@
 from fastapi import status
-
 from src.api.application.errors import BaseError
 
 
 class DatabaseError(BaseError):
     def __init__(
-        self, message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        self,
+        message: str,
+        status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
     ) -> None:
         super().__init__(message=message, status_code=status_code)
 
