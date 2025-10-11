@@ -1,10 +1,13 @@
 import asyncio
 from logging.config import fileConfig
-from typing import cast
+from typing import Literal, cast
 
 from alembic import context
+from alembic.operations import ops
+from alembic.runtime.migration import MigrationContext
 from sqlalchemy import Connection, pool, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.schema import SchemaItem
 
 from src.api.infra.database.tables import enabled_pg_schemas
 from src.api.infra.database.tables import metadata as target_metadata
@@ -33,7 +36,20 @@ for schema in target_schemas:
         )
 
 
-def include_object(object, name, type_, reflected, compare_to) -> None:
+def include_object(
+    obj: SchemaItem,
+    name: str,
+    type_: Literal[
+        "schema",
+        "table",
+        "column",
+        "index",
+        "unique_constraint",
+        "foreign_key_constraint",
+    ],
+    reflected: bool,
+    compare_to: SchemaItem | None,
+) -> bool:
     """Функция-признак, показывающая, учитывается ли объект при автогенрации.
 
     Вызываемая функция, которой предоставляется возможность вернуть True или False
@@ -58,7 +74,18 @@ def include_object(object, name, type_, reflected, compare_to) -> None:
     return not (type_ == "table" and object.schema not in enabled_pg_schemas)
 
 
-def include_name(name, type_, parent_names) -> bool:
+def include_name(
+    name: str | None,
+    type_: Literal[
+        "schema",
+        "table",
+        "column",
+        "index",
+        "unique_constraint",
+        "foreign_key_constraint",
+    ],
+    parent_names: dict[str, str],
+) -> bool:
     """Функция-признак включения имени сущности.
 
     Вызываемая функция, которой предоставляется возможность возвращать True или False
@@ -90,7 +117,11 @@ def include_name(name, type_, parent_names) -> bool:
     return True
 
 
-def process_revision_directives(context, revision, directives) -> None:
+def process_revision_directives(
+    context: MigrationContext,
+    revision: tuple[str, ...],
+    directives: list[ops.MigrationScript],
+) -> None:
     """Этот код нужен для тестирования алембик миграций.
 
     Вызываемая функция, которой будет передана структура, представляющая конечный

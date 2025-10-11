@@ -17,6 +17,5 @@ down:
 	docker-compose -f ./infra/docker-compose.yaml down
 
 lint:
-	uv run ruff check --fix
 	uv run ruff format
 	uv run pre-commit run --all-files
