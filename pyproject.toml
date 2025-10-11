@@ -3,15 +3,37 @@ name = "mav-tg-crm"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.12.*"
 dependencies = [
     "adaptix>=3.0.0b11",
     "aiogram>=3.22.0",
+    "alembic>=1.16.5",
+    "asyncpg>=0.30.0",
     "dishka>=1.7.1",
     "dynaconf>=3.2.11",
     "fastapi>=0.117.1",
     "pre-commit>=4.3.0",
+    "psycopg2-binary>=2.9.10",
     "ruff>=0.13.1",
     "structlog>=25.4.0",
     "uvicorn>=0.36.0",
 ]
+
+[tool.ruff]
+line-length = 79
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "F", "E", "W", "C90", "I", "N", "UP", "YTT", "ANN", "B", "A",
+    "COM", "C4", "DTZ", "ISC", "ICN", "INP", "PIE", "PT", "RET", "SIM",
+    "TID", "ARG", "PLC", "PLE", "PLR", "PLW", "RUF",
+]
+ignore = [
+    "UP006", "UP007", "D407", "PLC1901", "UP035", "COM812", "E501", "ARG001",
+]
+unfixable = ["F401", "F841"]
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"

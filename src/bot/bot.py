@@ -1,28 +1,62 @@
 import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
-from src.core.config import config
+
+from aiogram import Bot, Dispatcher, html
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+from aiogram.filters import CommandStart
+from aiogram.types import Message
 from structlog import get_logger
 
+from src.core.config import config
+
 logger = get_logger()
+# Bot token can be obtained via https://t.me/BotFather
+
+# All handlers should be attached to the Router (or Dispatcher)
+
+dp = Dispatcher()
 
 
-async def main():
-    # инициализируем бота с токеном из config
-    bot = Bot(token=config.bot.token)
-    dp = Dispatcher()
+@dp.message(CommandStart())
+async def command_start_handler(message: Message) -> None:
+    """
+    This handler receives messages with `/start` command
+    """
+    # Most event objects have aliases for API methods that can be called in events' context
+    # For example if you want to answer to incoming message you can use `message.answer(...)` alias
+    # and the target chat will be passed to :ref:`aiogram.methods.send_message.SendMessage`
+    # method automatically or call API method directly via
+    # Bot instance: `bot.send_message(chat_id=message.chat.id, ...)`
+    await message.answer(f"Hello, {html.bold(message.from_user.full_name)}!")
 
-    # простой хендлер /start
-    @dp.message(Command(commands=["start"]))
-    async def start_handler(message: types.Message):
-        await message.reply("Привет! Я эхо-бот.")
 
-    # хендлер для всего текста (эхо)
-    @dp.message()
-    async def echo_handler(message: types.Message):
-        await message.answer(message.text)
+@dp.message()
+async def echo_handler(message: Message) -> None:
+    """
+    Handler will forward receive a message back to the sender
 
-    # запускаем polling
+    By default, message handler will handle all message types (like a text, photo, sticker etc.)
+    """
+    logger.info(
+        f'get message: "{message.text}" from: @{message.from_user.username} at: {message.date}'
+    )
+
+    try:
+        # Send a copy of the received message
+        await message.send_copy(chat_id=message.chat.id)
+    except TypeError:
+        # But not all the types is supported to be copied so need to handle it
+        await message.answer("Nice try!")
+
+
+async def main() -> None:
+    # Initialize Bot instance with default bot properties which will be passed to all API calls
+    bot = Bot(
+        token=config.bot.token,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+
+    # And the run events dispatching
     await dp.start_polling(bot)
 
 

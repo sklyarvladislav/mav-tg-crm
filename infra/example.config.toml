@@ -1,8 +1,21 @@
 [default]
+[default.database]
+host = "postgres"
+port = 5432
+username = "postgres"
+password = "postgres"
+database = "postgres"
+
 [default.logging]
 level = "DEBUG"
 disabled_log_endpoints = ["/healthcheck", "/api", "/openapi.json"]
 logger_body_content_max_size = 1024
+
+[docker.database]
+host = "postgres"
+
+[local.database]
+host = "postgres"
 
 [default.bot]
 token = "t"
