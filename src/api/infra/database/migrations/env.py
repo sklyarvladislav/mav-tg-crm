@@ -71,7 +71,7 @@ def include_object(
     # # He добавляем рефлексивные колонки
     # if type_ == "column" and not reflected:
     #     return False
-    return not (type_ == "table" and object.schema not in enabled_pg_schemas)
+    return not (type_ == "table" and obj.schema not in enabled_pg_schemas)
 
 
 def include_name(
