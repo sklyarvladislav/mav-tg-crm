@@ -20,6 +20,12 @@ lint:
 	uv run ruff check --fix
 	uv run ruff format
 
+upgrade:
+	uv run alembic upgrade head
+
+downgrade:
+	uv run alembic downgrade -1
+
 migration:
 	uv run alembic revision --autogenerate -m $(MSG)
 	uv run alembic upgrade head
