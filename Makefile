@@ -17,5 +17,15 @@ down:
 	docker-compose -f ./infra/docker-compose.yaml down
 
 lint:
+	uv run ruff check --fix
 	uv run ruff format
-	uv run pre-commit run --all-files
+
+upgrade:
+	uv run alembic upgrade head
+
+downgrade:
+	uv run alembic downgrade -1
+
+migration:
+	uv run alembic revision --autogenerate -m $(MSG)
+	uv run alembic upgrade head
