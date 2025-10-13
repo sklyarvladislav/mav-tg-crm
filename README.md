@@ -115,8 +115,3 @@ make migration MSG="{name_of_migration}"
 
 
 created by MAV team 💙
-
-```
-```
-```
-```
