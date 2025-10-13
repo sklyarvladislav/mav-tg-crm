@@ -3,15 +3,15 @@
 #### Используемый стек:
 
 
-🐍 Python3.12
-🐍 FastAPI
-🐍 SQLAlchemy 2
-🐍 Dishka
-🐍 Adaptix
-🐍 Alembic
-🗃 PostgreSQL
-🐳 Docker + docker-compose 
-⚙️ uv 
+- 🐍 Python3.12
+- 🐍 FastAPI
+- 🐍 SQLAlchemy 2
+- 🐍 Dishka
+- 🐍 Adaptix
+- 🐍 Alembic
+- 🗃 PostgreSQL
+- 🐳 Docker + docker-compose
+- ⚙️ uv
 
 
 ---
