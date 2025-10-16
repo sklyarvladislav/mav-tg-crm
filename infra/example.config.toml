@@ -15,7 +15,7 @@ logger_body_content_max_size = 1024
 host = "postgres"
 
 [local.database]
-host = "postgres"
+host = "localhost"
 
 [default.bot]
 token = "t"
