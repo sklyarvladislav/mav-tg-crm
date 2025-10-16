@@ -1,15 +1,16 @@
-from sqlalchemy import Integer, String, Text, TIMESTAMP, ForeignKey
+import uuid
+from datetime import datetime
+
+from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import mapped_column
-from datetime import datetime
-import uuid
 
 from src.api.infra.database.tables.base import registry
 
 
 @registry.mapped_as_dataclass(kw_only=True)
 class Projects:
-    __tablename__ = "projects"
+    tablename = "projects"
 
     project_id: uuid.UUID = mapped_column(
         UUID(as_uuid=True),
@@ -28,7 +29,7 @@ class Projects:
 
 @registry.mapped_as_dataclass(kw_only=True)
 class ProjectParticipants:
-    __tablename__ = "project_participants"
+    tablename = "project_participants"
 
     project_id: uuid.UUID = mapped_column(
         UUID(as_uuid=True),
