@@ -1,5 +1,5 @@
 import app.keyboards as kb
-from aiogram import F, Router, types
+from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -16,8 +16,14 @@ class Reg(StatesGroup):
 
 @router.message(Command("reg"))
 async def cmd_reg(message: Message, state: FSMContext) -> None:
-    await state.set_state(Reg.name)
-    await message.answer("Введите ваше <b>имя</b>")
+    if message.from_user.id in user_bd:
+        await message.answer(
+            f"Вы уже зарегестрированы, <b>{user_bd[message.from_user.id]['name']}</b>",
+            reply_markup=kb.main_menu,
+        )
+    else:
+        await state.set_state(Reg.name)
+        await message.answer("Введите ваше <b>имя</b>")
 
 
 @router.message(Reg.name)
@@ -38,7 +44,7 @@ async def reg_three(message: Message, state: FSMContext) -> None:
         "number": data["number"],
     }
     await message.answer(
-        f"Успешно!\nВаше имя: {data['name']}\nВаш номер телефона: {data['number']}\nВаш user_id: {message.from_user.id}",
-        reply_markup=types.ReplyKeyboardRemove(),
+        "Успешно!",
+        reply_markup=kb.main_menu,
     )
     await state.clear()
