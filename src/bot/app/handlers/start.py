@@ -1,4 +1,5 @@
-from aiogram import Router
+import app.keyboards as kb
+from aiogram import Router, types
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
@@ -14,11 +15,13 @@ router = Router()
 async def cmd_start(message: Message) -> None:
     if message.from_user.id in user_bd:
         await message.answer(
-            f"С возвращением, <b>{user_bd[message.from_user.id]['name']}</b>! Ты уже зарегистрирован"
+            f"С возвращением, <b>{user_bd[message.from_user.id]['name']}</b>!",
+            reply_markup=kb.main_menu,
         )
     else:
         await message.answer(
-            "Добро пожаловать!\nДля дальнейшей работы бота <b>нужно пройти регистрацию</b>, для этого пропишите <b>/reg</b>"
+            "Добро пожаловать!\nДля дальнейшей работы бота <b>нужно пройти регистрацию</b>, для этого пропишите <b>/reg</b> 🎯",
+            reply_markup=types.ReplyKeyboardRemove(),
         )
 
 
