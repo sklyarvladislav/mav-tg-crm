@@ -18,10 +18,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install ruff
+        pip install ruff==0.0.283
     - name: Run Ruff
       run: |
-        ruff check $(git ls-files '*.py')
+        uv run ruff check --fix $(git ls-files '*.py')
+    - name: Format code
+      run: |
+        uv run ruff format $(git ls-files '*.py')
 
   build:
     name: Docker build
