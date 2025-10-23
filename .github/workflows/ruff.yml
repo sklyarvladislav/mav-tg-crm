@@ -21,10 +21,10 @@ jobs:
         pip install ruff==0.0.283
     - name: Run Ruff
       run: |
-        uv run ruff check --fix $(git ls-files '*.py')
+        ruff check --fix $(git ls-files '*.py')
     - name: Format code
       run: |
-        uv run ruff format $(git ls-files '*.py')
+        ruff format $(git ls-files '*.py')
 
   build:
     name: Docker build
