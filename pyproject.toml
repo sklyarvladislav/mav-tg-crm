@@ -24,7 +24,6 @@ dependencies = [
 line-length = 79
 target-version = "py312"
 
-[tool.ruff.lint]
 select = [
     "F", "E", "W", "C90", "I", "N", "UP", "YTT", "ANN", "B", "A",
     "COM", "C4", "DTZ", "ISC", "ICN", "INP", "PIE", "PT", "RET", "SIM",
@@ -35,6 +34,5 @@ ignore = [
 ]
 unfixable = ["F401", "F841"]
 
-[tool.ruff.format]
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
