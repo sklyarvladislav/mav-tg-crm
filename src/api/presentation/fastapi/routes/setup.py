@@ -13,5 +13,5 @@ logger = get_logger()
 
 def setup_routes(app: FastAPI) -> None:
     app.include_router(healthcheck_router)
-    app.include_router(auth_router)
+    app.include_router(auth_router, prefix="/api")
     logger.info("routes set up")
