@@ -9,8 +9,8 @@ from src.api.infra.database.tables.base import registry
 
 
 @registry.mapped_as_dataclass(kw_only=True)
-class Projects:
-    tablename = "projects"
+class Project:
+    __tablename__ = "projects"
 
     project_id: uuid.UUID = mapped_column(
         UUID(as_uuid=True),
@@ -28,8 +28,8 @@ class Projects:
 
 
 @registry.mapped_as_dataclass(kw_only=True)
-class ProjectParticipants:
-    tablename = "project_participants"
+class ProjectParticipant:
+    __tablename__ = "project_participants"
 
     project_id: uuid.UUID = mapped_column(
         UUID(as_uuid=True),
