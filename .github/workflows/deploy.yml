@@ -1,4 +1,4 @@
-name: 🚀 Deploy to RUVDS
+name: deploy
 
 on:
   push:
