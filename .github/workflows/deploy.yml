@@ -23,7 +23,7 @@ jobs:
       - name: Deploy to RUVDS
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-            cd /opt/mav-tg-crm && \
+            cd mav-tg-crm && \
             git pull origin main && \
             make compose
           "
