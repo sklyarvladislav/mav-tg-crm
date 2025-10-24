@@ -13,14 +13,6 @@ from sqlalchemy.sql import Delete, Insert, Select
 from sqlalchemy.sql.dml import Update
 from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.schema import Column
-from src.api.application.schemas.common import (
-    PagePaginatedSchema,
-    PaginationSchema,
-)
-from src.api.infra.database.services.pagination.offset import (
-    OffsetPaginationService,
-)
-from src.api.infra.database.services.query_composer import QueryComposer
 from typing_extensions import Self
 
 from src.api.infra.database.errors import (
@@ -89,32 +81,6 @@ class ReturningMixin[TTable]:
 class PostgresGate:
     session: AsyncSession
     retort = retort
-
-
-@dataclass
-class GetPaginatedGate[TTable]:
-    session: AsyncSession
-    table: type[TTable]
-    pagination_service: OffsetPaginationService
-
-    async def __call__[TFilter, TOrder](
-        self,
-        pagination: PaginationSchema,
-        _filtering: TFilter | None = None,
-        _ordering: TOrder | None = None,
-    ) -> PagePaginatedSchema[TTable]:
-        modifiers = []
-
-        result = await self.session.execute(
-            self.pagination_service.paginate_query(
-                QueryComposer(select(self.table), modifiers).build(),
-                pagination,
-            )
-        )
-
-        return retort.load(
-            result.mappings().first(), PagePaginatedSchema[self.table]
-        )
 
 
 @dataclass(kw_only=True)

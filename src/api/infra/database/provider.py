@@ -8,12 +8,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from src.api.infra.database.services.pagination.cursor import (
-    CursorPaginationService,
-)
-from src.api.infra.database.services.pagination.offset import (
-    OffsetPaginationService,
-)
 
 from src.api.infra.database.admin.settings.gates import (
     GetSettingsGate,
@@ -23,7 +17,6 @@ from src.api.infra.database.common import (
     CreateGate,
     DeleteGate,
     GetOneGate,
-    GetPaginatedGate,
     UpdateGate,
 )
 from src.api.infra.database.core.version.gates import GetVersionsGate
@@ -57,13 +50,10 @@ class DatabaseProvider(Provider):
             yield session
 
     _get_services = provide_all(
-        OffsetPaginationService,
-        CursorPaginationService,
         scope=Scope.APP,
     )
 
     _get_base_gates = provide_all(
-        GetPaginatedGate,
         GetOneGate,
         CreateGate,
         UpdateGate,
