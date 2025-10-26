@@ -20,9 +20,13 @@ class Reg(StatesGroup):
 
 @router.message(Command("reg"))
 async def cmd_reg(message: Message, state: FSMContext) -> None:
-    if message.from_user.id in user_bd:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://web:80/auth/user/{message.from_user.id}")
+
+    if response.status_code == 200:
+        user_data = response.json()
         await message.answer(
-            f"Вы уже зарегестрированы, <b>{user_bd[message.from_user.id]['name']}</b>",
+            f"Вы уже зарегистрированы, <b>{user_data['username']}</b>",
             reply_markup=kb.main_menu,
         )
     else:
@@ -45,7 +49,7 @@ async def reg_three(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
 
     user_id = message.from_user.id
-    username = message.from_user.username or f"user{user_id}"
+    username = data["name"]
     number = data["number"]
 
     async with httpx.AsyncClient() as client:
@@ -56,9 +60,10 @@ async def reg_three(message: Message, state: FSMContext) -> None:
         )
 
     if response.status_code == status.HTTP_200_OK:
-        await message.answer("Success!", reply_markup=kb.main_menu)
-        logger.info("User insert into database")
+        await message.answer("Успешно!", reply_markup=kb.main_menu)
+        logger.info(f"User {username} {user_id} insert into database")
     else:
-        await message.answer("Error... try later...")
+        await message.answer("Что-то пошло не так, повторите регистрацию еще раз <b>/reg</b>")
+        logger.info(f"User {username} {user_id} error reg")
 
     await state.clear()
