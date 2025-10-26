@@ -50,7 +50,7 @@ async def reg_three(message: Message, state: FSMContext) -> None:
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://web:80/api/auth",
+            "http://web:80/auth",
             json={"user_id": user_id, "username": username, "number": number},
             timeout=10.0,
         )

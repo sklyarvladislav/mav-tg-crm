@@ -11,7 +11,7 @@ router = APIRouter(route_class=DishkaRoute)
 logger = get_logger()
 
 
-@router.post("/auth")
+@router.post("", tags=["Authorization"])
 async def authorization(
     request: UserSchema,
     session: FromDishka[AsyncSession],
