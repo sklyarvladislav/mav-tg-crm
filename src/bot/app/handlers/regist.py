@@ -63,6 +63,17 @@ async def reg_three(message: Message, state: FSMContext) -> None:
         logger.info(f"User {username} {user_id} insert into database")
     else:
         await message.answer("Что-то пошло не так, повторите регистрацию еще раз <b>/reg</b>")
-        logger.info(f"User {username} {user_id} error reg")
+        logger.error(f"User {username} {user_id} error reg")
 
     await state.clear()
+
+
+@router.message(Command("del"))
+async def delete_user_cmd(message: Message):
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(f"http://web:80/auth/user/{message.from_user.id}")
+
+    if response.status_code == status.HTTP_200_OK:
+        await message.answer("Ok")
+    else:
+        await message.answer("Error")

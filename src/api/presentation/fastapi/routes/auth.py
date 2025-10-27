@@ -72,3 +72,18 @@ async def update_user(
     username=user.username,
     number=user.number,
 )
+
+@router.delete("/user/{user_id}")
+async def delete_user(
+        user_id: int,
+        session: FromDishka[AsyncSession]
+):
+    async with session.begin():
+        user = await session.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404)
+
+        await session.delete(user)
+        await session.commit()
+
+    return {"message": "User deleted"}

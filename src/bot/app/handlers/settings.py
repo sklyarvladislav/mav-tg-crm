@@ -16,7 +16,7 @@ async def settings_menu(message: Message) -> None:
     await message.answer("Настройки <b>профиля</b>:", reply_markup=kb.settings_menu)
 
 
-@router.message(F.text == "✏️ Изменить <b>имя</b>")
+@router.message(F.text == "✏️ Изменить имя")
 async def change_name_start(message: Message, state: FSMContext) -> None:
     await state.set_state(Settings.new_name)
     await message.answer("Введите новое <b>имя</b>:",reply_markup=types.ReplyKeyboardRemove() )
