@@ -77,7 +77,7 @@ async def update_user(
 async def delete_user(
         user_id: int,
         session: FromDishka[AsyncSession]
-):
+) -> dict:
     async with session.begin():
         user = await session.get(User, user_id)
         if not user:

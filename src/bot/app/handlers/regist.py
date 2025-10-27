@@ -1,6 +1,6 @@
 import app.keyboards as kb
 import httpx
-from aiogram import F, Router
+from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -69,11 +69,11 @@ async def reg_three(message: Message, state: FSMContext) -> None:
 
 
 @router.message(Command("del"))
-async def delete_user_cmd(message: Message):
+async def delete_user_cmd(message: Message) -> None:
     async with httpx.AsyncClient() as client:
         response = await client.delete(f"http://web:80/auth/user/{message.from_user.id}")
 
     if response.status_code == status.HTTP_200_OK:
-        await message.answer("Ok")
+        await message.answer("Ok", reply_markup = types.ReplyKeyboardRemove())
     else:
         await message.answer("Error")
