@@ -19,6 +19,8 @@ from src.api.infra.database.common import (
     GetOneGate,
     UpdateGate,
 )
+from src.api.infra.database.core.project.gates.delete import DeleteProjectGate
+from src.api.infra.database.core.project.gates.get import GetProjectGate
 from src.api.infra.database.core.version.gates import GetVersionsGate
 from src.core.config import Config
 
@@ -58,6 +60,8 @@ class DatabaseProvider(Provider):
         CreateGate,
         UpdateGate,
         DeleteGate,
+        GetProjectGate,
+        DeleteProjectGate,
         scope=Scope.REQUEST,
     )
 

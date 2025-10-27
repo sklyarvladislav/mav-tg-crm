@@ -1,8 +1,8 @@
-"""init
+"""add_project
 
-Revision ID: 08b026efc882
+Revision ID: fdee906e4400
 Revises:
-Create Date: 2025-10-23 21:40:23.605438
+Create Date: 2025-10-26 21:04:35.679854
 
 """
 
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "08b026efc882"
+revision: str = "fdee906e4400"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -57,16 +57,8 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("status", sa.String(length=50), nullable=True),
         sa.Column("owner", sa.BigInteger(), nullable=True),
-        sa.Column("created_by", sa.BigInteger(), nullable=True),
         sa.Column("created_at", sa.TIMESTAMP(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["created_by"],
-            ["mav_schema.users.user_id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["owner"],
-            ["mav_schema.users.user_id"],
-        ),
+        sa.ForeignKeyConstraint(["owner"], ["mav_schema.users.user_id"]),
         sa.PrimaryKeyConstraint("project_id"),
         schema="mav_schema",
     )
