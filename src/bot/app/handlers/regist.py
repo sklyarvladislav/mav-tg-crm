@@ -1,11 +1,10 @@
 import app.keyboards as kb
 import httpx
-from aiogram import F, Router
+from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from app.handlers.start import user_bd
 from fastapi import status
 from structlog import get_logger
 
@@ -20,9 +19,13 @@ class Reg(StatesGroup):
 
 @router.message(Command("reg"))
 async def cmd_reg(message: Message, state: FSMContext) -> None:
-    if message.from_user.id in user_bd:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://web:80/auth/user/{message.from_user.id}")
+
+    if response.status_code == status.HTTP_200_OK:
+        user_data = response.json()
         await message.answer(
-            f"Вы уже зарегестрированы, <b>{user_bd[message.from_user.id]['name']}</b>",
+            f"Вы уже зарегистрированы, <b>{user_data['username']}</b>",
             reply_markup=kb.main_menu,
         )
     else:
@@ -45,7 +48,7 @@ async def reg_three(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
 
     user_id = message.from_user.id
-    username = message.from_user.username or f"user{user_id}"
+    username = data["name"]
     number = data["number"]
 
     async with httpx.AsyncClient() as client:
@@ -56,9 +59,21 @@ async def reg_three(message: Message, state: FSMContext) -> None:
         )
 
     if response.status_code == status.HTTP_200_OK:
-        await message.answer("Success!", reply_markup=kb.main_menu)
-        logger.info("User insert into database")
+        await message.answer("Успешно!", reply_markup=kb.main_menu)
+        logger.info(f"User {username} {user_id} insert into database")
     else:
-        await message.answer("Error... try later...")
+        await message.answer("Что-то пошло не так, повторите регистрацию еще раз <b>/reg</b>")
+        logger.error(f"User {username} {user_id} error reg")
 
     await state.clear()
+
+
+@router.message(Command("del"))
+async def delete_user_cmd(message: Message) -> None:
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(f"http://web:80/auth/user/{message.from_user.id}")
+
+    if response.status_code == status.HTTP_200_OK:
+        await message.answer("Ok", reply_markup = types.ReplyKeyboardRemove())
+    else:
+        await message.answer("Error")
