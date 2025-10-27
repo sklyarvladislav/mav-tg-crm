@@ -1,4 +1,5 @@
 from fastapi import status
+
 from src.api.application.errors import BaseError
 
 

@@ -8,12 +8,21 @@ get_number = ReplyKeyboardMarkup(
 
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="👤 Профиль")],
-        [KeyboardButton(text="Кнопка1"), KeyboardButton(text="Кнопка2")],
+        [KeyboardButton(text="🚀 Проекты")],
+        [KeyboardButton(text="👤 Профиль"), KeyboardButton(text="⚙️ Настройки")],
     ],
     resize_keyboard=True,
 )
 
 back_from_profile = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="⬅️ Назад")]], resize_keyboard=True
+    keyboard=[[KeyboardButton(text="⬅️ Назад")]],
+    resize_keyboard=True
+)
+
+settings_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="✏️ Изменить имя")],
+        [KeyboardButton(text="⬅️ Назад")]
+    ],
+    resize_keyboard=True
 )

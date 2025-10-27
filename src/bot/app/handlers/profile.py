@@ -1,8 +1,8 @@
 import app.keyboards as kb
+import httpx
 from aiogram import F, Router
 from aiogram.types import Message
-from app.handlers.start import user_bd
-import httpx
+from fastapi import status
 
 router = Router()
 
@@ -12,7 +12,7 @@ async def profile(message: Message) -> None:
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://web:80/auth/user/{message.from_user.id}")
 
-    if response.status_code == 200:
+    if response.status_code == status.HTTP_200_OK:
         user_data = response.json()
         await message.answer(
             f"<b>Ваш профиль 👤</b>\n\n"

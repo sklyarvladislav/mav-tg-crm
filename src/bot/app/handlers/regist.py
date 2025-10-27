@@ -5,7 +5,6 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from app.handlers.start import user_bd
 from fastapi import status
 from structlog import get_logger
 
@@ -23,7 +22,7 @@ async def cmd_reg(message: Message, state: FSMContext) -> None:
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://web:80/auth/user/{message.from_user.id}")
 
-    if response.status_code == 200:
+    if response.status_code == status.HTTP_200_OK:
         user_data = response.json()
         await message.answer(
             f"Вы уже зарегистрированы, <b>{user_data['username']}</b>",
