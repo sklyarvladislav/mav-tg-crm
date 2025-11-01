@@ -11,7 +11,9 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/auth/user/{message.from_user.id}")
+        response = await client.get(
+            f"http://web:80/user/{message.from_user.id}"
+        )
 
     if response.status_code == status.HTTP_200_OK:
         user_data = response.json()

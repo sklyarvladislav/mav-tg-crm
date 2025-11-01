@@ -10,7 +10,9 @@ router = Router()
 @router.message(F.text == "👤 Профиль")
 async def profile(message: Message) -> None:
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/auth/user/{message.from_user.id}")
+        response = await client.get(
+            f"http://web:80/user/{message.from_user.id}"
+        )
 
     if response.status_code == status.HTTP_200_OK:
         user_data = response.json()
@@ -21,7 +23,9 @@ async def profile(message: Message) -> None:
             reply_markup=kb.back_from_profile,
         )
     else:
-        await message.answer('Что-то пошло не так, повторите регистрацию еще раз <b>/reg</b>')
+        await message.answer(
+            "Что-то пошло не так, повторите регистрацию еще раз <b>/reg</b>"
+        )
 
 
 @router.message(F.text == "⬅️ Назад")
