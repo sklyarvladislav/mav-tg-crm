@@ -18,13 +18,24 @@ main_menu = ReplyKeyboardMarkup(
 )
 
 back_from_profile = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="⬅️ Назад")]], resize_keyboard=True
+    keyboard=[[KeyboardButton(text="⬅️ Главное меню")]], resize_keyboard=True
 )
 
 settings_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="✏️ Изменить имя")],
-        [KeyboardButton(text="⬅️ Назад")],
+        [KeyboardButton(text="⬅️ Главное меню")],
+    ],
+    resize_keyboard=True,
+)
+
+projects_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text="➕ Создать проект"),
+            KeyboardButton(text="📋 Мои проекты"),
+        ],
+        [KeyboardButton(text="⬅️ Главное меню")],
     ],
     resize_keyboard=True,
 )

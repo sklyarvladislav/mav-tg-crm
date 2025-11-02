@@ -28,6 +28,6 @@ async def profile(message: Message) -> None:
         )
 
 
-@router.message(F.text == "⬅️ Назад")
+@router.message(F.text == "⬅️ Главное меню")
 async def nazadfromprofile(message: Message) -> None:
     await message.answer("Главное меню", reply_markup=kb.main_menu)
