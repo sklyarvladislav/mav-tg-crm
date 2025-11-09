@@ -2,6 +2,7 @@ from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog import get_logger
 
@@ -61,3 +62,26 @@ async def delete_project(
 @router.put("", tags=["Project"])
 async def update_project() -> None:
     pass
+
+
+@router.get("/owner/{owner_id}", tags=["Project"])
+async def get_projects_by_owner(
+    owner_id: int,
+    session: FromDishka[AsyncSession],
+) -> list[ProjectSchema]:
+    async with session.begin():
+        result = await session.execute(
+            select(Project).where(Project.owner == owner_id)
+        )
+        projects = result.scalars().all()
+
+    return [
+        ProjectSchema(
+            project_id=p.project_id,
+            name=p.name,
+            description=p.description,
+            status=p.status,
+            owner=p.owner,
+        )
+        for p in projects
+    ]

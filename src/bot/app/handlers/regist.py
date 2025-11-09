@@ -20,7 +20,9 @@ class Reg(StatesGroup):
 @router.message(Command("reg"))
 async def cmd_reg(message: Message, state: FSMContext) -> None:
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/auth/user/{message.from_user.id}")
+        response = await client.get(
+            f"http://web:80/user/{message.from_user.id}"
+        )
 
     if response.status_code == status.HTTP_200_OK:
         user_data = response.json()
@@ -62,7 +64,9 @@ async def reg_three(message: Message, state: FSMContext) -> None:
         await message.answer("Успешно!", reply_markup=kb.main_menu)
         logger.info(f"User {username} {user_id} insert into database")
     else:
-        await message.answer("Что-то пошло не так, повторите регистрацию еще раз <b>/reg</b>")
+        await message.answer(
+            "Что-то пошло не так, повторите регистрацию еще раз <b>/reg</b>"
+        )
         logger.error(f"User {username} {user_id} error reg")
 
     await state.clear()
@@ -71,9 +75,11 @@ async def reg_three(message: Message, state: FSMContext) -> None:
 @router.message(Command("del"))
 async def delete_user_cmd(message: Message) -> None:
     async with httpx.AsyncClient() as client:
-        response = await client.delete(f"http://web:80/auth/user/{message.from_user.id}")
+        response = await client.delete(
+            f"http://web:80/user/{message.from_user.id}"
+        )
 
     if response.status_code == status.HTTP_200_OK:
-        await message.answer("Ok", reply_markup = types.ReplyKeyboardRemove())
+        await message.answer("Ok", reply_markup=types.ReplyKeyboardRemove())
     else:
         await message.answer("Error")
