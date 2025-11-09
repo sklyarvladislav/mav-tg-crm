@@ -11,3 +11,11 @@ class ProjectSchema:
     description: str
     status: StatusProject
     owner: int
+
+
+@dataclass(slots=True, kw_only=True)
+class ProjectUpdateSchema:
+    name: str | None = None
+    description: str | None = None
+    status: StatusProject | None = None
+    owner: int | None = None
