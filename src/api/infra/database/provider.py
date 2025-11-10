@@ -19,6 +19,9 @@ from src.api.infra.database.common import (
     GetOneGate,
     UpdateGate,
 )
+from src.api.infra.database.core.board.gates.delete import DeleteBoardGate
+from src.api.infra.database.core.board.gates.get import GetBoardGate
+from src.api.infra.database.core.board.gates.update import UpdateBoardGate
 from src.api.infra.database.core.document.gates.delete import (
     DeleteDocumentGate,
 )
@@ -74,6 +77,9 @@ class DatabaseProvider(Provider):
         GetDocumentGate,
         DeleteDocumentGate,
         UpdateDocumentGate,
+        GetBoardGate,
+        DeleteBoardGate,
+        UpdateBoardGate,
         scope=Scope.REQUEST,
     )
 
