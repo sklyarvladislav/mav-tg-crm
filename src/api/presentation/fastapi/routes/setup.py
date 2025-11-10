@@ -4,6 +4,9 @@ from structlog import get_logger
 from src.api.presentation.fastapi.routes.auth import (
     router as auth_router,
 )
+from src.api.presentation.fastapi.routes.board import (
+    router as board_router,
+)
 from src.api.presentation.fastapi.routes.document import (
     router as document_router,
 )
@@ -24,4 +27,5 @@ def setup_routes(app: FastAPI) -> None:
     app.include_router(user_router, prefix="/user", tags=["User"])
     app.include_router(project_router, prefix="/project", tags=["Project"])
     app.include_router(document_router, prefix="/document", tags=["Document"])
+    app.include_router(board_router, prefix="/board", tags=["Board"])
     logger.info("routes set up")
