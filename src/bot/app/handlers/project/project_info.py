@@ -16,9 +16,7 @@ async def project_details(callback: CallbackQuery) -> None:
     project_id = callback.data.replace("project_", "")
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"http://web:80/project?project_id={project_id}"
-        )
+        response = await client.get(f"http://web:80/project/{project_id}")
 
     if response.status_code == status.HTTP_200_OK:
         project = response.json()
@@ -40,7 +38,13 @@ async def project_details(callback: CallbackQuery) -> None:
                         text="⚙️ Настроить",
                         callback_data=f"settings_{project_id}",
                     )
-                ]
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="➕ Создать документ",
+                        callback_data=f"create_doc_{project_id}",
+                    )
+                ],
             ]
         )
 
