@@ -9,6 +9,9 @@ from src.api.usecases.document.update_document import UpdateDocumentUsecase
 from src.api.usecases.project.delete_project import DeleteProjectUsecase
 from src.api.usecases.project.get_project import GetProjectUsecase
 from src.api.usecases.project.update_project import UpdateProjectUsecase
+from src.api.usecases.task.delete_task import DeleteTaskUsecase
+from src.api.usecases.task.get_task import GetTaskUsecase
+from src.api.usecases.task.update_task import UpdateTaskUsecase
 
 
 class UsecaseProvider(Provider):
@@ -22,5 +25,8 @@ class UsecaseProvider(Provider):
         GetBoardUsecase,
         DeleteBoardUsecase,
         UpdateBoardUsecase,
+        GetTaskUsecase,
+        DeleteTaskUsecase,
+        UpdateTaskUsecase,
         scope=Scope.REQUEST,
     )

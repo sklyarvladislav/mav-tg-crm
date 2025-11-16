@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, ForeignKey, String, Text
+from sqlalchemy import TIMESTAMP, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import mapped_column
 
+from src.api.application.enums.task import PriorityTask, StatusTask
 from src.api.infra.database.tables.base import registry
 
 
@@ -12,7 +13,7 @@ from src.api.infra.database.tables.base import registry
 class Task:
     __tablename__ = "tasks"
 
-    tasks_id: uuid.UUID = mapped_column(
+    task_id: uuid.UUID = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
@@ -24,7 +25,7 @@ class Task:
         ForeignKey("documents.document_id", ondelete="SET NULL"),
         default=None,
     )
-    responsible_id: int = mapped_column(
+    user_id: int | None = mapped_column(
         ForeignKey("users.user_id", ondelete="RESTRICT"),
         nullable=False,
     )
@@ -41,5 +42,9 @@ class Task:
     deadline: datetime | None = mapped_column(
         TIMESTAMP(timezone=True), default=None
     )
-    status: str | None = mapped_column(String(50), default=None)
-    priority: str | None = mapped_column(String(25), default=None)
+    status: StatusTask | None = mapped_column(
+        Enum(StatusTask, native_enum=False), default=None
+    )
+    priority: PriorityTask | None = mapped_column(
+        Enum(PriorityTask, native_enum=False), default=None
+    )

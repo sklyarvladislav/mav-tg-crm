@@ -32,6 +32,9 @@ from src.api.infra.database.core.document.gates.update import (
 from src.api.infra.database.core.project.gates.delete import DeleteProjectGate
 from src.api.infra.database.core.project.gates.get import GetProjectGate
 from src.api.infra.database.core.project.gates.update import UpdateProjectGate
+from src.api.infra.database.core.task.gates.delete import DeleteTaskGate
+from src.api.infra.database.core.task.gates.get import GetTaskGate
+from src.api.infra.database.core.task.gates.update import UpdateTaskGate
 from src.api.infra.database.core.version.gates import GetVersionsGate
 from src.core.config import Config
 
@@ -80,6 +83,9 @@ class DatabaseProvider(Provider):
         GetBoardGate,
         DeleteBoardGate,
         UpdateBoardGate,
+        GetTaskGate,
+        DeleteTaskGate,
+        UpdateTaskGate,
         scope=Scope.REQUEST,
     )
 
