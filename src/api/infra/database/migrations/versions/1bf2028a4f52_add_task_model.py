@@ -1,8 +1,8 @@
 """add_task_model
 
-Revision ID: bc70ef414e37
+Revision ID: 1bf2028a4f52
 Revises: dc8b3301ca48
-Create Date: 2025-11-16 22:58:10.227300
+Create Date: 2025-11-16 23:29:37.592365
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "bc70ef414e37"
+revision: str = "1bf2028a4f52"
 down_revision: Union[str, Sequence[str], None] = "dc8b3301ca48"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -31,23 +31,8 @@ def upgrade() -> None:
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("board_id", sa.UUID(), nullable=True),
         sa.Column("deadline", sa.TIMESTAMP(timezone=True), nullable=True),
-        sa.Column(
-            "status",
-            sa.Enum("DONE", "NOT_DONE", name="statustask", native_enum=False),
-            nullable=True,
-        ),
-        sa.Column(
-            "priority",
-            sa.Enum(
-                "LOW",
-                "MEDIUM",
-                "HIGH",
-                "FROZEN",
-                name="prioritytask",
-                native_enum=False,
-            ),
-            nullable=True,
-        ),
+        sa.Column("status", sa.String(length=25), nullable=True),
+        sa.Column("priority", sa.String(length=25), nullable=True),
         sa.ForeignKeyConstraint(
             ["board_id"], ["mav_schema.boards.board_id"], ondelete="SET NULL"
         ),
@@ -71,14 +56,7 @@ def upgrade() -> None:
         "projects",
         "status",
         existing_type=sa.VARCHAR(length=50),
-        type_=sa.Enum(
-            "IN_PROGRESS",
-            "FINISHED",
-            "STOPPED",
-            "PLANNED",
-            name="statusproject",
-            native_enum=False,
-        ),
+        type_=sa.String(length=25),
         existing_nullable=True,
         schema="mav_schema",
     )
@@ -91,14 +69,7 @@ def downgrade() -> None:
     op.alter_column(
         "projects",
         "status",
-        existing_type=sa.Enum(
-            "IN_PROGRESS",
-            "FINISHED",
-            "STOPPED",
-            "PLANNED",
-            name="statusproject",
-            native_enum=False,
-        ),
+        existing_type=sa.String(length=25),
         type_=sa.VARCHAR(length=50),
         existing_nullable=True,
         schema="mav_schema",

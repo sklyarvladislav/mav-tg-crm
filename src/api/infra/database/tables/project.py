@@ -1,11 +1,10 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import mapped_column
 
-from src.api.application.enums.project import StatusProject
 from src.api.infra.database.tables.base import registry
 
 
@@ -20,9 +19,7 @@ class Project:
     )
     name: str = mapped_column(String(100), nullable=False)
     description: str | None = mapped_column(Text)
-    status: StatusProject | None = mapped_column(
-        Enum(StatusProject, native_enum=False), default=None
-    )
+    status: str | None = mapped_column(String(25), default=None)
     owner: int | None = mapped_column(ForeignKey("users.user_id"))
     created_at: datetime = mapped_column(
         TIMESTAMP, default=datetime.utcnow, nullable=False
