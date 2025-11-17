@@ -11,6 +11,7 @@ compose:
 	docker-compose -f ./infra/docker-compose.yaml up --build -d --remove-orphans
 
 watch:
+	docker-compose -f ./infra/docker-compose.yaml down
 	docker-compose -f ./infra/docker-compose.yaml up --build --watch
 
 down:

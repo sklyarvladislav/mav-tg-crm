@@ -2,7 +2,7 @@ from src.api.application.enums.base import BaseENUM
 
 
 class StatusProject(BaseENUM):
-    IN_PROGRESS = "In progress"
-    FINISHED = "Finished"
-    STOPPED = "Stopped"
-    PLANNED = "Planned"
+    IN_PROGRESS = "IN_PROGRESS"
+    FINISHED = "FINISHED"
+    STOPPED = "STOPPED"
+    PLANNED = "PLANNED"

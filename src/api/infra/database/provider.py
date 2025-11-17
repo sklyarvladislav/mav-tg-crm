@@ -19,8 +19,22 @@ from src.api.infra.database.common import (
     GetOneGate,
     UpdateGate,
 )
+from src.api.infra.database.core.board.gates.delete import DeleteBoardGate
+from src.api.infra.database.core.board.gates.get import GetBoardGate
+from src.api.infra.database.core.board.gates.update import UpdateBoardGate
+from src.api.infra.database.core.document.gates.delete import (
+    DeleteDocumentGate,
+)
+from src.api.infra.database.core.document.gates.get import GetDocumentGate
+from src.api.infra.database.core.document.gates.update import (
+    UpdateDocumentGate,
+)
 from src.api.infra.database.core.project.gates.delete import DeleteProjectGate
 from src.api.infra.database.core.project.gates.get import GetProjectGate
+from src.api.infra.database.core.project.gates.update import UpdateProjectGate
+from src.api.infra.database.core.task.gates.delete import DeleteTaskGate
+from src.api.infra.database.core.task.gates.get import GetTaskGate
+from src.api.infra.database.core.task.gates.update import UpdateTaskGate
 from src.api.infra.database.core.version.gates import GetVersionsGate
 from src.core.config import Config
 
@@ -61,7 +75,17 @@ class DatabaseProvider(Provider):
         UpdateGate,
         DeleteGate,
         GetProjectGate,
+        UpdateProjectGate,
         DeleteProjectGate,
+        GetDocumentGate,
+        DeleteDocumentGate,
+        UpdateDocumentGate,
+        GetBoardGate,
+        DeleteBoardGate,
+        UpdateBoardGate,
+        GetTaskGate,
+        DeleteTaskGate,
+        UpdateTaskGate,
         scope=Scope.REQUEST,
     )
 

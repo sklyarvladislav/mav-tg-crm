@@ -19,7 +19,7 @@ class Project:
     )
     name: str = mapped_column(String(100), nullable=False)
     description: str | None = mapped_column(Text)
-    status: str | None = mapped_column(String(50))
+    status: str | None = mapped_column(String(25), default=None)
     owner: int | None = mapped_column(ForeignKey("users.user_id"))
     created_at: datetime = mapped_column(
         TIMESTAMP, default=datetime.utcnow, nullable=False

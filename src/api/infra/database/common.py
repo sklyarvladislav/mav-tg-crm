@@ -112,12 +112,15 @@ class CreateGate[TTable, TCreate](PostgresGate, ReturningMixin[TTable]):
         return self
 
     async def __call__(self, entity: TCreate) -> TTable | None:
+        data = retort.dump(entity)
+
+        if isinstance(data.get("deadline"), str):
+            data["deadline"] = datetime.fromisoformat(
+                data["deadline"].replace("Z", "+00:00")
+            )
+
         stmt = self._query.values(
-            **{
-                f: v
-                for f, v in retort.dump(entity).items()
-                if f not in self._omit
-            },
+            **{f: v for f, v in data.items() if f not in self._omit},
             **self._extra_insert,
         )
         try:
