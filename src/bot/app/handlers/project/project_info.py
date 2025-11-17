@@ -51,6 +51,7 @@ async def project_details(callback: CallbackQuery) -> None:
         await callback.message.answer(
             f"📋 <b>{project['name']}</b>\n\n"
             f"Описание: {project['description']}\n"
+            f"Статус: {project['status']}\n"  # Добавили статус
             f"ID: {project['project_id']}\n"
             f"Владелец: {owner_name}",
             reply_markup=settings_keyboard,
