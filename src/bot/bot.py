@@ -4,6 +4,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommand
+from app.handlers.document.delete_document import (
+    router as delete_document_router,
+)
 from app.handlers.document.make_document import router as document_router
 from app.handlers.profile import router as profile_router
 from app.handlers.project.make_project import router as make_project_router
@@ -48,6 +51,7 @@ async def main() -> None:
         settings_router,
         projects_router,
         document_router,
+        delete_document_router,
         make_project_router,
         my_projects_router,
         project_settings_router,

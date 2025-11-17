@@ -31,8 +31,27 @@ async def project_details(callback: CallbackQuery) -> None:
                 else "ошибка получения имени :("
             )
 
-        settings_keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
+        async with httpx.AsyncClient() as client_docs:
+            docs_response = await client_docs.get(
+                f"http://web:80/document/{project_id}/documents"
+            )
+
+        keyboard_buttons = []
+
+        if docs_response.status_code == status.HTTP_200_OK:
+            documents = docs_response.json()
+            for doc in documents:
+                keyboard_buttons.append(
+                    [
+                        InlineKeyboardButton(
+                            text=f"📄 {doc['name']}",
+                            callback_data=f"open_doc_{doc['document_id']}",
+                        )
+                    ]
+                )
+
+        keyboard_buttons.extend(
+            [
                 [
                     InlineKeyboardButton(
                         text="⚙️ Настроить",
@@ -48,10 +67,14 @@ async def project_details(callback: CallbackQuery) -> None:
             ]
         )
 
+        settings_keyboard = InlineKeyboardMarkup(
+            inline_keyboard=keyboard_buttons
+        )
+
         await callback.message.answer(
             f"📋 <b>{project['name']}</b>\n\n"
             f"Описание: {project['description']}\n"
-            f"Статус: {project['status']}\n"  # Добавили статус
+            f"Статус: {project['status']}\n"
             f"ID: {project['project_id']}\n"
             f"Владелец: {owner_name}",
             reply_markup=settings_keyboard,

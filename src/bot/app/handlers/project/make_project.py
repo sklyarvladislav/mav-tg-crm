@@ -43,7 +43,7 @@ async def make_project_desc(message: Message, state: FSMContext) -> None:
             json={
                 "name": data["project_name"],
                 "description": data["project_desc"],
-                "status": "In progress",
+                "status": "В работе",
                 "owner": data["project_owner"],
             },
         )

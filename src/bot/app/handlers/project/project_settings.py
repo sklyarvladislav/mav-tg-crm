@@ -40,7 +40,7 @@ async def project_settings(callback: CallbackQuery) -> None:
             [
                 InlineKeyboardButton(
                     text="🗑️ Удалить проект",
-                    callback_data=f"delete_{project_id}",
+                    callback_data=f"delete_project_{project_id}",
                 )
             ],
             [
@@ -56,16 +56,16 @@ async def project_settings(callback: CallbackQuery) -> None:
     )
 
 
-@router.callback_query(F.data.startswith("delete_"))
+@router.callback_query(F.data.startswith("delete_project_"))
 async def delete_confirm(callback: CallbackQuery) -> None:
-    project_id = callback.data.replace("delete_", "")
+    project_id = callback.data.replace("delete_project_", "")
 
     confirm_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text="✅ Подтвердить удаление",
-                    callback_data=f"confirm_delete_{project_id}",
+                    callback_data=f"confirm_delete_project_{project_id}",
                 )
             ]
         ]
@@ -76,9 +76,9 @@ async def delete_confirm(callback: CallbackQuery) -> None:
     )
 
 
-@router.callback_query(F.data.startswith("confirm_delete_"))
+@router.callback_query(F.data.startswith("confirm_delete_project_"))
 async def delete_project(callback: CallbackQuery) -> None:
-    project_id = callback.data.replace("confirm_delete_", "")
+    project_id = callback.data.replace("confirm_delete_project_", "")
 
     async with httpx.AsyncClient() as client:
         response = await client.delete(f"http://web:80/project/{project_id}")

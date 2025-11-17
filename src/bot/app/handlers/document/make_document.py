@@ -2,7 +2,12 @@ import httpx
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 from fastapi import status
 
 router = Router()
@@ -51,12 +56,22 @@ async def document_link(message: Message, state: FSMContext) -> None:
 
     if response.status_code == status.HTTP_200_OK:
         doc = response.json()
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="⬅️ Назад к проекту",
+                        callback_data=f"project_{doc['project_id']}",
+                    )
+                ]
+            ]
+        )
         await message.answer(
             f"📄 Документ создан!\n\n"
             f"Название: {doc['name']}\n"
             f"Ссылка: {doc['link']}\n"
-            f"ID документа: {doc['document_id']}\n"
-            f"Прикреплён к проекту: {doc['project_id']}",
+            f"ID документа: {doc['document_id']}",
+            reply_markup=keyboard,
             disable_web_page_preview=True,
         )
     else:
