@@ -28,6 +28,16 @@ async def cmd_start(message: Message) -> None:
         )
 
 
+@router.message(Command("about"))
+async def about_cmd(message: Message) -> None:
+    await message.answer("Тут будет инфо о боте")
+
+
+@router.message(Command("menu"))
+async def main_menu_cmd(message: Message) -> None:
+    await message.answer("Главное меню:", reply_markup=kb.main_menu)
+
+
 @router.message(Command("help"))
 async def cmd_help(message: Message) -> None:
     await message.reply("Для перезапуска бота напишите <b>/start</b>")

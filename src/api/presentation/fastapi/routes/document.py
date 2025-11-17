@@ -2,6 +2,7 @@ from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog import get_logger
 
@@ -49,6 +50,28 @@ async def get_document(
     document_id: UUID,
 ) -> DocumentSchema:
     return await usecase(document_id=document_id)
+
+
+@router.get("/{project_id}/documents")
+async def get_project_documents(
+    project_id: UUID,
+    session: FromDishka[AsyncSession],
+) -> list[DocumentSchema]:
+    async with session.begin():
+        result = await session.execute(
+            select(Document).where(Document.project_id == project_id)
+        )
+        documents = result.scalars().all()
+
+    return [
+        DocumentSchema(
+            document_id=doc.document_id,
+            project_id=doc.project_id,
+            name=doc.name,
+            link=doc.link,
+        )
+        for doc in documents
+    ]
 
 
 @router.delete("/{document_id}")

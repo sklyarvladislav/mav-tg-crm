@@ -3,16 +3,21 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.types import BotCommand
+from app.handlers.document.delete_document import (
+    router as delete_document_router,
+)
 from app.handlers.document.make_document import router as document_router
 from app.handlers.profile import router as profile_router
 from app.handlers.project.make_project import router as make_project_router
 from app.handlers.project.my_projects import router as my_projects_router
 from app.handlers.project.project_info import router as project_info_router
+from app.handlers.project.project_settings import (
+    router as project_settings_router,
+)
 from app.handlers.project.projects import router as projects_router
 from app.handlers.regist import router as regist_router
 from app.handlers.settings import router as settings_router
-
-# Импорты роутеров напрямую
 from app.handlers.start import router as start_router
 from app.handlers.unknownmes import router as unknownmes_router
 from structlog import get_logger
@@ -27,7 +32,18 @@ bot = Bot(
 )
 
 
+async def set_commands(bot: Bot) -> None:
+    commands = [
+        BotCommand(command="/start", description="Старт"),
+        BotCommand(command="/menu", description="Главное меню"),
+        BotCommand(command="/about", description="О сервисе"),
+    ]
+    await bot.set_my_commands(commands)
+
+
 async def main() -> None:
+    await set_commands(bot)
+
     routers = [
         start_router,
         regist_router,
@@ -35,8 +51,10 @@ async def main() -> None:
         settings_router,
         projects_router,
         document_router,
+        delete_document_router,
         make_project_router,
         my_projects_router,
+        project_settings_router,
         project_info_router,
         unknownmes_router,
     ]

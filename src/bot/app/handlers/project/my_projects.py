@@ -31,5 +31,6 @@ async def my_projects(message: Message) -> None:
             "📂 Ваши проекты:",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard),
         )
-    else:
-        await message.answer("У вас еще нет проектов")
+        if not projects:
+            await message.answer("У вас еще нет проектов")
+            return
