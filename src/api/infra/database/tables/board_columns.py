@@ -8,17 +8,16 @@ from src.api.infra.database.tables.base import registry
 
 
 @registry.mapped_as_dataclass(kw_only=True)
-class Board:
-    __tablename__ = "boards"
+class BoardColumns:
+    __tablename__ = "board_columns"
 
-    board_id: uuid.UUID = mapped_column(
+    column_id: uuid.UUID = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
-    project_id: uuid.UUID = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("projects.project_id", ondelete="CASCADE"),
+    board_id: uuid.UUID = mapped_column(
+        ForeignKey("boards.board_id", ondelete="CASCADE"), nullable=False
     )
     name: str = mapped_column(String(100), nullable=False)
     position: int = mapped_column(Integer, default=0)

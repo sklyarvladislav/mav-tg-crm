@@ -17,7 +17,7 @@ class Document:
         default=uuid.uuid4,
     )
     project_id: uuid.UUID | None = mapped_column(
-        ForeignKey("projects.project_id")
+        ForeignKey("projects.project_id", ondelete="CASCADE")
     )
     name: str = mapped_column(String(100), nullable=False)
     link: str = mapped_column(String(100), nullable=False)
