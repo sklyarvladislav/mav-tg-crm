@@ -20,7 +20,9 @@ class Project:
     name: str = mapped_column(String(100), nullable=False)
     description: str | None = mapped_column(Text)
     status: str | None = mapped_column(String(25), default=None)
-    owner: int | None = mapped_column(ForeignKey("users.user_id"))
+    owner: int | None = mapped_column(
+        ForeignKey("users.user_id", ondelete="CASCADE")
+    )
     created_at: datetime = mapped_column(
         TIMESTAMP, default=datetime.utcnow, nullable=False
     )
