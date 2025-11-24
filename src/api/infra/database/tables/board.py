@@ -17,7 +17,8 @@ class Board:
         default=uuid.uuid4,
     )
     project_id: uuid.UUID = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.project_id")
+        UUID(as_uuid=True),
+        ForeignKey("projects.project_id", ondelete="CASCADE"),
     )
     name: str = mapped_column(String(100), nullable=False)
     position: int = mapped_column(Integer, default=0)
