@@ -7,6 +7,9 @@ from src.api.presentation.fastapi.routes.auth import (
 from src.api.presentation.fastapi.routes.board import (
     router as board_router,
 )
+from src.api.presentation.fastapi.routes.column import (
+    router as column_router,
+)
 from src.api.presentation.fastapi.routes.document import (
     router as document_router,
 )
@@ -29,5 +32,8 @@ def setup_routes(app: FastAPI) -> None:
     app.include_router(project_router, prefix="/project", tags=["Project"])
     app.include_router(document_router, prefix="/document", tags=["Document"])
     app.include_router(board_router, prefix="/board", tags=["Board"])
+    app.include_router(
+        column_router, prefix="/column", tags=["Columns of board"]
+    )
     app.include_router(task_router, prefix="/task", tags=["Task"])
     logger.info("routes set up")

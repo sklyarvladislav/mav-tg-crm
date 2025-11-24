@@ -22,6 +22,7 @@ class GetTaskGate(PostgresGate):
             Task.user_id,
             Task.project_id,
             Task.board_id,
+            Task.column_id,
             Task.deadline,
             Task.status,
             Task.priority,

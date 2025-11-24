@@ -23,3 +23,19 @@ class Board:
     name: str = mapped_column(String(100), nullable=False)
     position: int = mapped_column(Integer, default=0)
     number_tasks: int = mapped_column(Integer, default=0)
+
+
+@registry.mapped_as_dataclass(kw_only=True)
+class BoardColumn:
+    __tablename__ = "board_columns"
+
+    column_id: uuid.UUID = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    board_id: uuid.UUID = mapped_column(
+        UUID(as_uuid=True), ForeignKey("boards.board_id", ondelete="CASCADE")
+    )
+    name: str = mapped_column(String(100), nullable=False)
+    position: int = mapped_column(Integer, default=1)

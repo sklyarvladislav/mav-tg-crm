@@ -1,5 +1,5 @@
 from .base import enabled_pg_schemas, metadata
-from .board import Board
+from .board import Board, BoardColumn
 from .document import Document
 from .project import Project, ProjectParticipant
 from .settings import Settings
@@ -9,6 +9,7 @@ from .version import Version
 
 __all__ = [
     "Board",
+    "BoardColumn",
     "Document",
     "Project",
     "ProjectParticipant",

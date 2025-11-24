@@ -16,3 +16,19 @@ class BoardUpdateSchema:
     name: str | None = None
     position: int | None = None
     number_tasks: int | None = None
+
+
+@dataclass(slots=True, kw_only=True)
+class BoardColumnSchema:
+    column_id: UUID | None = None
+    board_id: UUID
+    name: str
+    position: int
+
+
+@dataclass(slots=True, kw_only=True)
+class BoardColumnUpdateSchema:
+    column_id: UUID | None = None
+    board_id: UUID | None = None
+    name: str | None = None
+    position: int | None = None
