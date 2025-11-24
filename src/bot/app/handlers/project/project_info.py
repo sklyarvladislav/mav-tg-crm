@@ -31,24 +31,7 @@ async def project_details(callback: CallbackQuery) -> None:
                 else "ошибка получения имени :("
             )
 
-        async with httpx.AsyncClient() as client_docs:
-            docs_response = await client_docs.get(
-                f"http://web:80/document/{project_id}/documents"
-            )
-
         keyboard_buttons = []
-
-        if docs_response.status_code == status.HTTP_200_OK:
-            documents = docs_response.json()
-            for doc in documents:
-                keyboard_buttons.append(
-                    [
-                        InlineKeyboardButton(
-                            text=f"📄 {doc['name']}",
-                            callback_data=f"open_doc_{doc['document_id']}",
-                        )
-                    ]
-                )
 
         keyboard_buttons.extend(
             [
@@ -60,8 +43,26 @@ async def project_details(callback: CallbackQuery) -> None:
                 ],
                 [
                     InlineKeyboardButton(
-                        text="➕ Создать документ",
-                        callback_data=f"create_doc_{project_id}",
+                        text="📄 Документы",
+                        callback_data=f"get_doc_{project_id}",
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="📁 Доски",
+                        callback_data=f"get_board_{project_id}",
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="📝 Таски",
+                        callback_data=f"get_tasks_{project_id}",
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="👥 Участники",
+                        callback_data=f"get_users_{project_id}",
                     )
                 ],
             ]
