@@ -38,6 +38,11 @@ class Task:
         ForeignKey("boards.board_id", ondelete="SET NULL"),
         default=None,
     )
+    column_id: uuid.UUID | None = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("board_columns", ondelete="SET NULL"),
+        default=None,
+    )
     deadline: datetime | None = mapped_column(
         TIMESTAMP(timezone=True), default=None
     )

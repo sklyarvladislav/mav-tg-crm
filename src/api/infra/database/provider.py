@@ -22,6 +22,13 @@ from src.api.infra.database.common import (
 from src.api.infra.database.core.board.gates.delete import DeleteBoardGate
 from src.api.infra.database.core.board.gates.get import GetBoardGate
 from src.api.infra.database.core.board.gates.update import UpdateBoardGate
+from src.api.infra.database.core.column.gates.delete import (
+    DeleteBoardColumnGate,
+)
+from src.api.infra.database.core.column.gates.get import GetBoardColumnGate
+from src.api.infra.database.core.column.gates.update import (
+    UpdateBoardColumnGate,
+)
 from src.api.infra.database.core.document.gates.delete import (
     DeleteDocumentGate,
 )
@@ -83,6 +90,9 @@ class DatabaseProvider(Provider):
         GetBoardGate,
         DeleteBoardGate,
         UpdateBoardGate,
+        GetBoardColumnGate,
+        DeleteBoardColumnGate,
+        UpdateBoardColumnGate,
         GetTaskGate,
         DeleteTaskGate,
         UpdateTaskGate,

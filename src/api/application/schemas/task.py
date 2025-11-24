@@ -12,6 +12,7 @@ class TaskSchema:
     user_id: int | None
     project_id: UUID
     board_id: UUID | None
+    column_id: UUID | None
     deadline: datetime
     status: str
     priority: str
@@ -25,6 +26,7 @@ class TaskUpdateSchema:
     responsible_id: int | None = None
     project_id: UUID | None = None
     board_id: UUID | None = None
+    column_id: UUID | None = None
     deadline: datetime | None = None
     status: str | None = None
     priority: str | None = None

@@ -20,6 +20,7 @@ class GetTaskUsecase:
             user_id=task.user_id,
             project_id=task.project_id,
             board_id=task.board_id,
+            column_id=task.column_id,
             deadline=task.deadline,
             status=task.status,
             priority=task.priority,

@@ -3,6 +3,9 @@ from dishka import Provider, Scope, provide_all
 from src.api.usecases.board.delete_board import DeleteBoardUsecase
 from src.api.usecases.board.get_board import GetBoardUsecase
 from src.api.usecases.board.update_board import UpdateBoardUsecase
+from src.api.usecases.column.delete_column import DeleteBoardColumnUsecase
+from src.api.usecases.column.get_column import GetBoardColumnUsecase
+from src.api.usecases.column.update_column import UpdateBoardColumnUsecase
 from src.api.usecases.document.delete_document import DeleteDocumentUsecase
 from src.api.usecases.document.get_document import GetDocumentUsecase
 from src.api.usecases.document.update_document import UpdateDocumentUsecase
@@ -25,6 +28,9 @@ class UsecaseProvider(Provider):
         GetBoardUsecase,
         DeleteBoardUsecase,
         UpdateBoardUsecase,
+        GetBoardColumnUsecase,
+        DeleteBoardColumnUsecase,
+        UpdateBoardColumnUsecase,
         GetTaskUsecase,
         DeleteTaskUsecase,
         UpdateTaskUsecase,
