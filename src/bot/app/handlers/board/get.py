@@ -28,7 +28,7 @@ async def show_boards(callback: CallbackQuery) -> None:
     keyboard_buttons = [
         [
             InlineKeyboardButton(
-                text=f"📄 {board['name']}",
+                text=f" 🗄 {board['name']}",
                 callback_data=f"open_board_{board['board_id']}",
             )
         ]
@@ -54,26 +54,3 @@ async def show_boards(callback: CallbackQuery) -> None:
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
     await callback.message.edit_text("🗄 Доски проекта:", reply_markup=keyboard)
-
-
-@router.callback_query(F.data.startswith("open_board_"))
-async def open_board(callback: CallbackQuery) -> None:
-    """
-    Хендлер для открытия конкретного документа по кнопке.
-    """
-    await callback.answer()
-    board_id = callback.data.replace("open_board_", "")
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/board/{board_id}")
-
-    if response.status_code != status.HTTP_200_OK:
-        await callback.message.answer("❌ Не удалось получить доску")
-        return
-
-    board = response.json()
-    await callback.message.edit_text(
-        f"🗄 Доска:\n\n"
-        f"Название: {board['name']}\n"
-        f"Количество задачек: {board['number_tasks']}\n"
-    )

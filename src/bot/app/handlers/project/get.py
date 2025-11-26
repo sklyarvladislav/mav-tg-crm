@@ -1,9 +1,17 @@
 import httpx
-from aiogram import Router
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram import F, Router
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 from fastapi import status
+from structlog import get_logger
 
 router = Router()
+
+logger = get_logger()
 
 
 async def send_projects_list(
@@ -50,3 +58,17 @@ async def send_projects_list(
             "📂 Ваши проекты:",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard),
         )
+
+
+@router.message(F.text == "🚀 Проекты")
+async def project_watch(message: Message) -> None:
+    logger.info("start find projects")
+    await send_projects_list(message)
+
+
+@router.callback_query(F.data == "back_to_projects")
+async def backfromprojects(callback: CallbackQuery) -> None:
+    await callback.answer()
+    await send_projects_list(
+        callback.message, callback.from_user.id, edit=True
+    )

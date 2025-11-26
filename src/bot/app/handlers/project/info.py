@@ -44,7 +44,7 @@ async def show_project_screen(message: Message, project_id: str) -> None:
         ],
         [
             InlineKeyboardButton(
-                text="📁 Доски", callback_data=f"get_board_{project_id}"
+                text="🗄 Доски", callback_data=f"get_board_{project_id}"
             )
         ],
         [

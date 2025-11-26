@@ -9,8 +9,10 @@ from aiogram.types import (
     Message,
 )
 from fastapi import status
+from structlog import get_logger
 
 router = Router()
+logger = get_logger()
 
 
 class MakeBoard(StatesGroup):
@@ -22,10 +24,6 @@ class MakeBoard(StatesGroup):
 async def start_create_board(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
-    """
-    Старт процесса создания доски.
-    Устанавливает проект и переводит FSM в состояние ввода названия доски.
-    """
     await callback.answer()
 
     project_id = callback.data.replace("create_board_", "")
@@ -37,51 +35,48 @@ async def start_create_board(
 
 @router.message(MakeBoard.board_name)
 async def board_name(message: Message, state: FSMContext) -> None:
-    """
-    Сохраняет название доски и переводит FSM в состояние ввода описания.
-    """
-    await state.update_data(name=message.text)
-    await state.set_state(MakeBoard.board_description)
-    await message.answer("Введите описание доски:")
-
-
-@router.message(MakeBoard.board_description)
-async def board_description(message: Message, state: FSMContext) -> None:
-    await state.update_data(
-        description=message.text
-    )  # можно оставить для информации
-
     data = await state.get_data()
+    project_id = data["project_id"]
+    board_name = message.text
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://web:80/board/{project_id}/boards")
+
+    if response.status_code == status.HTTP_200_OK:
+        boards = response.json()
+        logger.info(boards)
+        if boards:
+            max_position = max(board["position"] for board in boards)
+            position = max_position + 1
+        else:
+            position = 0
+    else:
+        position = 0
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
             "http://web:80/board",
             json={
-                "name": data["name"],
-                "project_id": str(data["project_id"]),
-                "position": 0,
+                "name": board_name,
+                "project_id": str(project_id),
+                "position": position,
                 "number_tasks": 0,
             },
         )
 
     if response.status_code == status.HTTP_200_OK:
         board = response.json()
-
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="⬅️ Назад к проекту",
-                        callback_data=f"project_{board['project_id']}",
+                        text="⬅️ Назад", callback_data=f"project_{project_id}"
                     )
                 ]
             ]
         )
-
         await message.answer(
-            f"📋 Доска создана!\n\n"
-            f"Название: {board['name']}\n"
-            f"ID доски: {board['board_id']}",
+            f"🗄Доска создана!\n\nНазвание: {board['name']}\nID доски: {board['board_id']}\nТекущая позиция: {board['position']}",
             reply_markup=keyboard,
         )
     else:

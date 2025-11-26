@@ -58,28 +58,3 @@ async def show_documents(callback: CallbackQuery) -> None:
     await callback.message.edit_text(
         "📂 Документы проекта:", reply_markup=keyboard
     )
-
-
-@router.callback_query(F.data.startswith("open_doc_"))
-async def open_document(callback: CallbackQuery) -> None:
-    """
-    Хендлер для открытия конкретного документа по кнопке.
-    """
-    await callback.answer()
-    document_id = callback.data.replace("open_doc_", "")
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/document/{document_id}")
-
-    if response.status_code != status.HTTP_200_OK:
-        await callback.message.answer("❌ Не удалось получить документ")
-        return
-
-    doc = response.json()
-    await callback.message.edit_text(
-        f"📄 Документ:\n\n"
-        f"Название: {doc['name']}\n"
-        f"Ссылка: {doc['link']}\n"
-        f"ID документа: {doc['document_id']}",
-        disable_web_page_preview=True,
-    )

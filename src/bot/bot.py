@@ -4,18 +4,24 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommand
-from app.handlers.board import make_board_router
+from app.handlers.board import (
+    delete_board_router,
+    get_board_router,
+    make_board_router,
+    open_board_router,
+)
 from app.handlers.document import (
     delete_document_router,
     get_document_router,
     make_document_router,
+    open_document_router,
 )
 from app.handlers.project import (
+    delete_project_router,
+    get_project_router,
+    info_project_router,
     make_project_router,
-    my_projects_router,
-    project_info_router,
-    project_settings_router,
-    projects_router,
+    settings_project_router,
 )
 from app.handlers.start import router as start_router
 from app.handlers.user import (
@@ -54,17 +60,21 @@ async def main() -> None:
         profile_router,
         settings_router,
         # project
-        projects_router,
         make_project_router,
-        my_projects_router,
-        project_settings_router,
-        project_info_router,
+        info_project_router,
+        settings_project_router,
+        get_project_router,
+        delete_project_router,
         # document
         make_document_router,
         get_document_router,
         delete_document_router,
+        open_document_router,
         # board
         make_board_router,
+        get_board_router,
+        delete_board_router,
+        open_board_router,
         # unknownmes
         unknownmes_router,
     ]
