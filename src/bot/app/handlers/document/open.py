@@ -31,8 +31,8 @@ async def open_document(callback: CallbackQuery) -> None:
                 ],
                 [
                     InlineKeyboardButton(
-                        text="⬅️ Назад к проекту",
-                        callback_data=f"project_{doc['project_id']}",
+                        text="⬅️ Назад",
+                        callback_data=f"get_doc_{doc['project_id']}",
                     )
                 ],
             ]

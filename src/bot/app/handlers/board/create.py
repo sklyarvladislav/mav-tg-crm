@@ -70,7 +70,7 @@ async def board_name(message: Message, state: FSMContext) -> None:
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="⬅️ Назад", callback_data=f"project_{project_id}"
+                        text="⬅️ Назад", callback_data=f"get_board_{project_id}"
                     )
                 ]
             ]

@@ -60,8 +60,8 @@ async def document_link(message: Message, state: FSMContext) -> None:
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="⬅️ Назад к проекту",
-                        callback_data=f"project_{doc['project_id']}",
+                        text="⬅️ Назад",
+                        callback_data=f"get_doc_{doc['project_id']}",
                     )
                 ]
             ]

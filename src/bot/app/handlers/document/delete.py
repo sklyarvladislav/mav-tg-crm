@@ -32,8 +32,8 @@ async def delete_document(callback: CallbackQuery) -> None:
                     inline_keyboard=[
                         [
                             InlineKeyboardButton(
-                                text="⬅️ Назад к проекту",
-                                callback_data=f"project_{project_id}",
+                                text="⬅️ Назад",
+                                callback_data=f"get_doc_{project_id}",
                             )
                         ]
                     ]

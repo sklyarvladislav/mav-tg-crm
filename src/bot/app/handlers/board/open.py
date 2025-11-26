@@ -35,7 +35,7 @@ async def open_board(callback: CallbackQuery) -> None:
             [
                 InlineKeyboardButton(
                     text="⬅️ Назад",
-                    callback_data=f"project_{board['project_id']}",
+                    callback_data=f"get_board_{board['project_id']}",
                 )
             ],
         ]

@@ -48,7 +48,7 @@ async def delete_board(callback: CallbackQuery) -> None:
                 [
                     InlineKeyboardButton(
                         text="⬅️ Назад",
-                        callback_data=f"project_{project_id}",
+                        callback_data=f"get_board_{project_id}",
                     )
                 ]
             ]
