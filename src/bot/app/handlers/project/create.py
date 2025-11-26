@@ -3,7 +3,7 @@ import httpx
 from aiogram import F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 from fastapi import status
 
 router = Router()
@@ -15,10 +15,11 @@ class MakeProject(StatesGroup):
     project_owner = State()
 
 
-@router.message(F.text == "➕ Создать проект")
-async def make_project(message: Message, state: FSMContext) -> None:
+@router.callback_query(F.data == "create_project")
+async def make_project(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
     await state.set_state(MakeProject.project_name)
-    await message.answer(
+    await callback.message.answer(
         "Введите название проекта: ", reply_markup=types.ReplyKeyboardRemove()
     )
 

@@ -12,10 +12,7 @@ router = Router()
 
 @router.callback_query(F.data.startswith("get_doc_"))
 async def show_documents(callback: CallbackQuery) -> None:
-    """
-    При нажатии на кнопку 📄 Документы показывает список документов проекта.
-    """
-    await callback.answer()  # чтобы Telegram не показывал "loading..."
+    await callback.answer()
 
     project_id = callback.data.replace("get_doc_", "")
 
@@ -29,11 +26,7 @@ async def show_documents(callback: CallbackQuery) -> None:
         return
 
     documents = response.json()
-    if not documents:
-        await callback.message.answer("📂 Документов пока нет")
-        return
 
-    # формируем клавиатуру
     keyboard_buttons = [
         [
             InlineKeyboardButton(
@@ -44,10 +37,19 @@ async def show_documents(callback: CallbackQuery) -> None:
         for doc in documents
     ]
 
+    keyboard_buttons.append(
+        [
+            InlineKeyboardButton(
+                text="➕ Создать документ",
+                callback_data=f"create_doc_{project_id}",
+            )
+        ]
+    )
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
-    await callback.message.answer(
-        "📂 Список документов:", reply_markup=keyboard
+    await callback.message.edit_text(
+        "📂 Документы проекта:", reply_markup=keyboard
     )
 
 

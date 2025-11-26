@@ -54,5 +54,5 @@ async def change_name_finish(message: Message, state: FSMContext) -> None:
 
 
 @router.message(F.text == "⬅️ Главное меню")
-async def nazadfromsettings(message: Message) -> None:
+async def backfromsettings(message: Message) -> None:
     await message.answer("Главное меню", reply_markup=kb.main_menu)

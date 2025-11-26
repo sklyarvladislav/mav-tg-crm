@@ -10,7 +10,6 @@ from app.handlers.document.delete import (
     router as delete_document_router,
 )
 from app.handlers.document.get import router as get_document_router
-from app.handlers.profile import router as profile_router
 from app.handlers.project.create import router as make_project_router
 from app.handlers.project.my_projects import router as my_projects_router
 from app.handlers.project.project_info import router as project_info_router
@@ -18,10 +17,11 @@ from app.handlers.project.project_settings import (
     router as project_settings_router,
 )
 from app.handlers.project.projects import router as projects_router
-from app.handlers.regist import router as regist_router
-from app.handlers.settings import router as settings_router
 from app.handlers.start import router as start_router
-from app.handlers.unknownmes import router as unknownmes_router
+from app.handlers.user.profile import router as profile_router
+from app.handlers.user.regist import router as regist_router
+from app.handlers.user.settings import router as settings_router
+from app.handlers.user.unknownmes import router as unknownmes_router
 from structlog import get_logger
 
 from src.core.config import config
@@ -66,8 +66,8 @@ async def main() -> None:
     for router in routers:
         dp.include_router(router)
 
-    logger.info("Bot start polling")
     await dp.start_polling(bot)
+    logger.info("Bot start polling")
 
 
 if __name__ == "__main__":
