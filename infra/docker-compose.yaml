@@ -35,7 +35,7 @@ services:
     environment:
       CONFIG_FILE: "/etc/config.toml"
       MAV_ENV: "docker"
-      PYTHONPATH: "/app"
+      PYTHONPATH: "/app:/app/src"
     command: >
       /bin/uv run python src/bot/bot.py
     configs:

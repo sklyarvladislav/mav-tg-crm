@@ -1,9 +1,13 @@
-import app.keyboards as kb
 import httpx
 from aiogram import F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 from fastapi import status
 
 router = Router()
@@ -15,10 +19,11 @@ class MakeProject(StatesGroup):
     project_owner = State()
 
 
-@router.message(F.text == "➕ Создать проект")
-async def make_project(message: Message, state: FSMContext) -> None:
+@router.callback_query(F.data == "create_project")
+async def make_project(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
     await state.set_state(MakeProject.project_name)
-    await message.answer(
+    await callback.message.answer(
         "Введите название проекта: ", reply_markup=types.ReplyKeyboardRemove()
     )
 
@@ -47,6 +52,18 @@ async def make_project_desc(message: Message, state: FSMContext) -> None:
                 "owner": data["project_owner"],
             },
         )
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Назад к проектам",
+                    callback_data="back_to_projects",
+                )
+            ]
+        ]
+    )
+
     if response.status_code == status.HTTP_200_OK:
         project_data = response.json()
         await message.answer(
@@ -54,6 +71,6 @@ async def make_project_desc(message: Message, state: FSMContext) -> None:
             f"Название: {project_data['name']}\n"
             f"Описание: {project_data['description']}\n"
             f"ID: {project_data['project_id']}\n",
-            reply_markup=kb.projects_menu,
+            reply_markup=keyboard,
         )
     await state.clear()
