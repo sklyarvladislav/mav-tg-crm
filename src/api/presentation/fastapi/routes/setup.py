@@ -36,4 +36,4 @@ def setup_routes(app: FastAPI) -> None:
         column_router, prefix="/column", tags=["Columns of board"]
     )
     app.include_router(task_router, prefix="/task", tags=["Task"])
-    logger.info("routes set up")
+    logger.info("Routes set up")

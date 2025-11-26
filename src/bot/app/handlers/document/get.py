@@ -47,8 +47,8 @@ async def show_documents(callback: CallbackQuery) -> None:
     keyboard_buttons.append(
         [
             InlineKeyboardButton(
-                text="⬅️ Назад к проекту",
-                callback_data=f"back_to_project_{project_id}",
+                text="⬅️ Назад",
+                callback_data=f"project_{project_id}",
             )
         ]
     )

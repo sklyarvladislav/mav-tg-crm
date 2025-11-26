@@ -4,27 +4,26 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommand
-from app.handlers.board.create import router as board_router
-from app.handlers.document.create import router as document_router
-from app.handlers.document.delete import (
-    router as delete_document_router,
+from app.handlers.board import make_board_router
+from app.handlers.document import (
+    delete_document_router,
+    get_document_router,
+    make_document_router,
 )
-from app.handlers.document.get import router as get_document_router
-from app.handlers.project.back_to_project import (
-    router as back_to_project_router,
+from app.handlers.project import (
+    make_project_router,
+    my_projects_router,
+    project_info_router,
+    project_settings_router,
+    projects_router,
 )
-from app.handlers.project.create import router as make_project_router
-from app.handlers.project.my_projects import router as my_projects_router
-from app.handlers.project.project_info import router as project_info_router
-from app.handlers.project.project_settings import (
-    router as project_settings_router,
-)
-from app.handlers.project.projects import router as projects_router
 from app.handlers.start import router as start_router
-from app.handlers.user.profile import router as profile_router
-from app.handlers.user.regist import router as regist_router
-from app.handlers.user.settings import router as settings_router
-from app.handlers.user.unknownmes import router as unknownmes_router
+from app.handlers.user import (
+    profile_router,
+    regist_router,
+    settings_router,
+    unknownmes_router,
+)
 from structlog import get_logger
 
 from src.core.config import config
@@ -54,21 +53,26 @@ async def main() -> None:
         regist_router,
         profile_router,
         settings_router,
+        # project
         projects_router,
-        document_router,
-        delete_document_router,
         make_project_router,
         my_projects_router,
         project_settings_router,
         project_info_router,
-        back_to_project_router,
-        unknownmes_router,
-        board_router,
+        # document
+        make_document_router,
         get_document_router,
+        delete_document_router,
+        # board
+        make_board_router,
+        # unknownmes
+        unknownmes_router,
     ]
-
-    for router in routers:
-        dp.include_router(router)
+    for r in routers:
+        dp.include_router(r)
+        for name, value in globals().items():
+            if value == r:
+                logger.info(f"Route: {name} - set up")
 
     await dp.start_polling(bot)
     logger.info("Bot start polling")
