@@ -31,9 +31,6 @@ settings_menu = ReplyKeyboardMarkup(
 
 projects_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [
-            KeyboardButton(text="📋 Мои проекты"),
-        ],
         [KeyboardButton(text="⬅️ Главное меню")],
     ],
     resize_keyboard=True,

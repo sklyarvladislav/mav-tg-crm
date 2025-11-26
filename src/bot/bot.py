@@ -10,6 +10,9 @@ from app.handlers.document.delete import (
     router as delete_document_router,
 )
 from app.handlers.document.get import router as get_document_router
+from app.handlers.project.back_to_project import (
+    router as back_to_project_router,
+)
 from app.handlers.project.create import router as make_project_router
 from app.handlers.project.my_projects import router as my_projects_router
 from app.handlers.project.project_info import router as project_info_router
@@ -58,6 +61,7 @@ async def main() -> None:
         my_projects_router,
         project_settings_router,
         project_info_router,
+        back_to_project_router,
         unknownmes_router,
         board_router,
         get_document_router,

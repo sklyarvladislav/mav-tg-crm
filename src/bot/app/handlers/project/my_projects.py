@@ -1,16 +1,19 @@
 import httpx
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from fastapi import status
 
 router = Router()
 
 
-async def send_projects_list(message: Message) -> None:
+async def send_projects_list(
+    message: Message, user_id: int | None = None, edit: bool = False
+) -> None:
+    if user_id is None and message is not None:
+        user_id = message.from_user.id
+
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"http://web:80/project/owner/{message.from_user.id}"
-        )
+        response = await client.get(f"http://web:80/project/owner/{user_id}")
 
     if response.status_code != status.HTTP_200_OK:
         await message.answer("Не удалось получить список проектов")
@@ -37,12 +40,13 @@ async def send_projects_list(message: Message) -> None:
         ]
     )
 
-    await message.answer(
-        "📂 Ваши проекты:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard),
-    )
-
-
-@router.message(F.text == "📋 Мои проекты")
-async def my_projects(message: Message) -> None:
-    await send_projects_list(message)
+    if edit:
+        await message.edit_text(
+            "📂 Ваши проекты:",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard),
+        )
+    else:
+        await message.answer(
+            "📂 Ваши проекты:",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard),
+        )

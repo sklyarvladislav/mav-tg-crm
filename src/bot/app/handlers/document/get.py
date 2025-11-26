@@ -36,12 +36,19 @@ async def show_documents(callback: CallbackQuery) -> None:
         ]
         for doc in documents
     ]
-
     keyboard_buttons.append(
         [
             InlineKeyboardButton(
                 text="➕ Создать документ",
                 callback_data=f"create_doc_{project_id}",
+            )
+        ]
+    )
+    keyboard_buttons.append(
+        [
+            InlineKeyboardButton(
+                text="⬅️ Назад к проекту",
+                callback_data=f"back_to_project_{project_id}",
             )
         ]
     )
@@ -69,7 +76,7 @@ async def open_document(callback: CallbackQuery) -> None:
         return
 
     doc = response.json()
-    await callback.message.answer(
+    await callback.message.edit_text(
         f"📄 Документ:\n\n"
         f"Название: {doc['name']}\n"
         f"Ссылка: {doc['link']}\n"
