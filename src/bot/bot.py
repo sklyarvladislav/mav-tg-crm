@@ -24,6 +24,9 @@ from app.handlers.project import (
     settings_project_router,
 )
 from app.handlers.start import router as start_router
+from app.handlers.task import (
+    get_task_router,
+)
 from app.handlers.user import (
     profile_router,
     regist_router,
@@ -75,6 +78,8 @@ async def main() -> None:
         get_board_router,
         delete_board_router,
         open_board_router,
+        # task
+        get_task_router,
         # unknownmes
         unknownmes_router,
     ]

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, ForeignKey, String, Text
+from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import mapped_column
 
@@ -26,12 +26,12 @@ class Task:
     )
     user_id: int | None = mapped_column(
         ForeignKey("users.user_id", ondelete="RESTRICT"),
-        nullable=False,
+        default=None,
     )
     project_id: uuid.UUID = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("projects.project_id", ondelete="CASCADE"),
-        nullable=False,
+        default=None,
     )
     board_id: uuid.UUID | None = mapped_column(
         UUID(as_uuid=True),
@@ -46,5 +46,6 @@ class Task:
     deadline: datetime | None = mapped_column(
         TIMESTAMP(timezone=True), default=None
     )
+    number: int = mapped_column(Integer, default=0)
     status: str | None = mapped_column(String(25), default=None)
     priority: str | None = mapped_column(String(25), default=None)
