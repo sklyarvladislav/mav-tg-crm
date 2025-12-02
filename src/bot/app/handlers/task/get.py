@@ -20,7 +20,7 @@ async def show_boards(callback: CallbackQuery) -> None:
         response = await client.get(f"http://web:80/task/{project_id}/tasks")
 
     if response.status_code != status.HTTP_200_OK:
-        await callback.message.answer("❌ Не удалось получить таски")
+        await callback.message.answer("❌ Не удалось получить задачи")
         return
 
     tasks = response.json()
@@ -28,7 +28,7 @@ async def show_boards(callback: CallbackQuery) -> None:
     keyboard_buttons = [
         [
             InlineKeyboardButton(
-                text=f" 🗄 {task['name']}",
+                text=f" 📝 {task['name']}",
                 callback_data=f"open_task_{task['task_id']}",
             )
         ]
@@ -37,7 +37,7 @@ async def show_boards(callback: CallbackQuery) -> None:
     keyboard_buttons.append(
         [
             InlineKeyboardButton(
-                text="➕ Создать таску",
+                text="➕ Создать задачу",
                 callback_data=f"create_task_{project_id}",
             )
         ]
@@ -53,4 +53,6 @@ async def show_boards(callback: CallbackQuery) -> None:
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
-    await callback.message.edit_text("🗄 Таски проекта:", reply_markup=keyboard)
+    await callback.message.edit_text(
+        "📝 Задачи проекта:", reply_markup=keyboard
+    )

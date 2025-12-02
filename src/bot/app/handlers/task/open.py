@@ -10,41 +10,45 @@ from fastapi import status
 router = Router()
 
 
-@router.callback_query(F.data.startswith("open_board_"))
-async def open_board(callback: CallbackQuery) -> None:
+@router.callback_query(F.data.startswith("open_task_"))
+async def open_task(callback: CallbackQuery) -> None:
     await callback.answer()
-    board_id = callback.data.replace("open_board_", "")
+    task_id = callback.data.replace("open_task_", "")
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/board/{board_id}")
+        response = await client.get(f"http://web:80/task/{task_id}")
 
     if response.status_code != status.HTTP_200_OK:
-        await callback.message.answer("❌ Не удалось получить доску")
+        await callback.message.answer("❌ Не удалось получить задачу")
         return
 
-    board = response.json()
+    task = response.json()
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🗑️ Удалить доску",
-                    callback_data=f"delete_board_{board['board_id']}",
+                    text="🗑️ Удалить задачу",
+                    callback_data=f"delete_task_{task['task_id']}",
                 )
             ],
             [
                 InlineKeyboardButton(
                     text="⬅️ Назад",
-                    callback_data=f"get_board_{board['project_id']}",
+                    callback_data=f"get_tasks_{task['project_id']}",
                 )
             ],
         ]
     )
 
     await callback.message.edit_text(
-        f"🗄 Доска:\n\n"
-        f"Название: {board['name']}\n"
-        f"Количество задачек: {board['number_tasks']}\n"
-        f"Позиция: {board['position']}\n",
+        f"📝 Задача:\n\n"
+        f"Название: {task['name']}\n"
+        f"Описание: {task['text']}\n"
+        f"Медиа: {task['document_id']}\n"
+        f"Исполнитель: {task['user_id']}\n"
+        f"Статус: {task['status']}\n"
+        f"Приоритет: {task['priority']}\n"
+        f"Дедлайн: {task['deadline']}\n",
         reply_markup=keyboard,
     )

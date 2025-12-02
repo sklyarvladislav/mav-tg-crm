@@ -1,3 +1,6 @@
+from datetime import UTC, datetime
+from uuid import uuid4
+
 import httpx
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -17,7 +20,16 @@ logger = get_logger()
 
 class MakeTask(StatesGroup):
     task_name = State()
-    task_document = State()
+    task_description = State()
+
+    choose_document_mode = State()
+    choose_existing_document = State()
+    new_document_name = State()
+    new_document_link = State()
+
+    priority = State()
+    deadline = State()
+    executor = State()
 
 
 @router.callback_query(F.data.startswith("create_task_"))
@@ -25,62 +37,309 @@ async def start_create_task(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
     await callback.answer()
-
     project_id = callback.data.replace("create_task_", "")
-
     await state.update_data(project_id=project_id)
 
     await state.set_state(MakeTask.task_name)
-    await callback.message.answer("Введите название задачки:")
+    await callback.message.answer("Введите название задачи:")
 
 
 @router.message(MakeTask.task_name)
-async def board_name(message: Message, state: FSMContext) -> None:
+async def enter_task_name(message: Message, state: FSMContext) -> None:
+    await state.update_data(task_name=message.text)
+
+    await state.set_state(MakeTask.task_description)
+    await message.answer("Введите описание задачи:")
+
+
+@router.message(MakeTask.task_description)
+async def enter_task_description(message: Message, state: FSMContext) -> None:
+    await state.update_data(task_description=message.text)
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📄 Выбрать существующий документ",
+                    callback_data="doc_choose_existing",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🆕 Создать новый документ",
+                    callback_data="doc_create_new",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🚫 Без документа", callback_data="doc_none"
+                )
+            ],
+        ]
+    )
+
+    await state.set_state(MakeTask.choose_document_mode)
+    await message.answer(
+        "Выберите способ добавить документ:", reply_markup=keyboard
+    )
+
+
+@router.callback_query(
+    MakeTask.choose_document_mode, F.data == "doc_choose_existing"
+)
+async def choose_existing_document(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
+    await callback.answer()
     data = await state.get_data()
     project_id = data["project_id"]
-    board_name = message.text
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/board/{project_id}/boards")
+        resp = await client.get(
+            f"http://web:80/document/{project_id}/documents"
+        )
 
-    if response.status_code == status.HTTP_200_OK:
-        boards = response.json()
-        logger.info(boards)
-        if boards:
-            max_position = max(board["position"] for board in boards)
-            position = max_position + 1
-        else:
-            position = 0
-    else:
-        position = 0
+    docs = resp.json() if resp.status_code == status.HTTP_200_OK else []
+
+    if not docs:
+        await callback.message.answer(
+            "В проекте нет документов. Создайте новый."
+        )
+        await state.set_state(MakeTask.new_document_name)
+        await callback.message.answer("Введите название документа:")
+        return
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=doc["name"],
+                    callback_data=f"doc_select_{doc['document_id']}",
+                )
+            ]
+            for doc in docs
+        ]
+    )
+
+    await state.set_state(MakeTask.choose_existing_document)
+    await callback.message.answer("Выберите документ:", reply_markup=keyboard)
+
+
+@router.callback_query(
+    MakeTask.choose_existing_document, F.data.startswith("doc_select_")
+)
+async def select_existing_document(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
+    await callback.answer()
+    document_id = callback.data.replace("doc_select_", "")
+    await state.update_data(document_id=document_id)
+    await start_priority_select(callback.message, state)
+
+
+@router.callback_query(
+    MakeTask.choose_document_mode, F.data == "doc_create_new"
+)
+async def doc_create_new(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await state.set_state(MakeTask.new_document_name)
+    await callback.message.answer("Введите название документа:")
+
+
+@router.message(MakeTask.new_document_name)
+async def doc_enter_name(message: Message, state: FSMContext) -> None:
+    await state.update_data(new_doc_name=message.text)
+    await state.set_state(MakeTask.new_document_link)
+    await message.answer("Введите ссылку на документ:")
+
+
+@router.message(MakeTask.new_document_link)
+async def doc_create(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "http://web:80/board",
+        resp = await client.post(
+            "http://web:80/document",
             json={
-                "name": board_name,
-                "project_id": str(project_id),
-                "position": position,
-                "number_tasks": 0,
+                "name": data["new_doc_name"],
+                "link": message.text,
+                "project_id": data["project_id"],
             },
         )
 
-    if response.status_code == status.HTTP_200_OK:
-        board = response.json()
+    if resp.status_code != status.HTTP_200_OK:
+        await message.answer("❌ Ошибка создания документа. Попробуйте снова.")
+        return
+
+    doc = resp.json()
+    await state.update_data(document_id=doc["document_id"])
+
+    await message.answer(f"📄 Документ создан: {doc['name']}")
+    await start_priority_select(message, state)
+
+
+@router.callback_query(MakeTask.choose_document_mode, F.data == "doc_none")
+async def no_document(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await state.update_data(document_id=None)
+    await start_priority_select(callback.message, state)
+
+
+async def start_priority_select(message: Message, state: FSMContext) -> None:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⚪ Без приоритета", callback_data="priority_WITHOUT"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🟢 Низкий", callback_data="priority_LOW"
+                ),
+                InlineKeyboardButton(
+                    text="🟡 Средний", callback_data="priority_MEDIUM"
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔴 Высокий", callback_data="priority_HIGH"
+                ),
+                InlineKeyboardButton(
+                    text="🧊 Заморожен", callback_data="priority_FROZEN"
+                ),
+            ],
+        ]
+    )
+
+    await state.set_state(MakeTask.priority)
+    await message.answer("Выберите приоритет задачи:", reply_markup=keyboard)
+
+
+@router.callback_query(MakeTask.priority, F.data.startswith("priority_"))
+async def choose_priority(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await state.update_data(priority=callback.data.replace("priority_", ""))
+
+    await state.set_state(MakeTask.deadline)
+    await callback.message.answer("Введите дедлайн (YYYY-MM-DD) или «нет»:")
+
+
+@router.message(MakeTask.deadline)
+async def enter_deadline(message: Message, state: FSMContext) -> None:
+    deadline_text = message.text.lower()
+    deadline_value = None
+
+    if deadline_text != "нет":
+        try:
+            deadline_value = (
+                datetime.strptime(message.text, "%Y-%m-%d")
+                .replace(tzinfo=UTC)
+                .isoformat()
+            )
+        except ValueError:
+            await message.answer("❌ Неверный формат. Пример: 2025-12-31")
+            return
+
+    await state.update_data(deadline=deadline_value)
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get("http://web:80/user/list")
+
+    if resp.status_code == status.HTTP_200_OK:
+        users = resp.json()
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="⬅️ Назад", callback_data=f"get_board_{project_id}"
+                        text=user["full_name"],
+                        callback_data=f"user_{user['user_id']}",
+                    )
+                ]
+                for user in users
+            ]
+            + [
+                [
+                    InlineKeyboardButton(
+                        text="Без исполнителя", callback_data="user_none"
                     )
                 ]
             ]
         )
-        await message.answer(
-            f"🗄Доска создана!\n\nНазвание: {board['name']}\nID доски: {board['board_id']}\nТекущая позиция: {board['position']}",
-            reply_markup=keyboard,
-        )
     else:
-        await message.answer("❌ Ошибка при создании доски")
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="Без исполнителя", callback_data="user_none"
+                    )
+                ]
+            ]
+        )
+
+    await state.set_state(MakeTask.executor)
+    await message.answer("Выберите исполнителя:", reply_markup=keyboard)
+
+
+@router.callback_query(MakeTask.executor, F.data.startswith("user_"))
+async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+
+    executor_raw = callback.data.replace("user_", "")
+    executor_id = None if executor_raw == "none" else int(executor_raw)
+
+    await state.update_data(executor_id=executor_id)
+    data = await state.get_data()
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"http://web:80/task/{data['project_id']}/tasks"
+        )
+        tasks = resp.json() if resp.status_code == status.HTTP_200_OK else []
+        number = max((t.get("number", -1) for t in tasks), default=-1) + 1
+
+        payload = {
+            "task_id": str(uuid4()),
+            "name": data.get("task_name") or "Без названия",
+            "text": data.get("task_description") or "",
+            "document_id": data.get("document_id"),
+            "user_id": executor_id,
+            "project_id": data["project_id"],
+            "board_id": None,
+            "column_id": None,
+            "number": number,
+            "priority": data.get("priority") or "WITHOUT",
+            "deadline": data.get("deadline"),
+            "status": "NOT_DONE",
+        }
+
+        resp = await client.post("http://web:80/task", json=payload)
+
+    if resp.status_code != status.HTTP_200_OK:
+        await callback.message.answer("❌ Ошибка при создании задачи")
+        await state.clear()
+        return
+
+    task = resp.json()
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Назад",
+                    callback_data=f"get_tasks_{data['project_id']}",
+                )
+            ]
+        ]
+    )
+
+    await callback.message.answer(
+        f"✅ Задача создана!\n\n"
+        f"Название: {task['name']}\n"
+        f"ID: {task['task_id']}\n"
+        f"Приоритет: {task['priority']}\n"
+        f"Номер: {task['number']}",
+        reply_markup=keyboard,
+    )
 
     await state.clear()

@@ -47,5 +47,5 @@ class Task:
         TIMESTAMP(timezone=True), default=None
     )
     number: int = mapped_column(Integer, default=0)
-    status: str | None = mapped_column(String(25), default=None)
-    priority: str | None = mapped_column(String(25), default=None)
+    status: str = mapped_column(String(25), default="NOT_DONE")
+    priority: str = mapped_column(String(25), default="WITHOUT")
