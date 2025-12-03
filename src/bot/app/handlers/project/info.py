@@ -54,7 +54,8 @@ async def show_project_screen(message: Message, project_id: str) -> None:
         ],
         [
             InlineKeyboardButton(
-                text="👥 Участники", callback_data=f"get_users_{project_id}"
+                text="👥 Участники",
+                callback_data=f"get_participant_{project_id}",
             )
         ],
         [

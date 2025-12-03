@@ -44,7 +44,7 @@ async def create_participant(
     )
 
 
-@router.get("/{participant_id}")
+@router.get("/{user_id}")
 async def get_participant(
     usecase: FromDishka[GetParticipantUsecase],
     user_id: int,

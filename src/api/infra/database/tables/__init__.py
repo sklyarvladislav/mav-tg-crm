@@ -1,7 +1,7 @@
 from .base import enabled_pg_schemas, metadata
 from .board import Board, BoardColumn
 from .document import Document
-from .project import Project, ProjectParticipant
+from .project import Project, ProjectInvite, ProjectParticipant
 from .settings import Settings
 from .task import Task
 from .user import User
@@ -12,6 +12,7 @@ __all__ = [
     "BoardColumn",
     "Document",
     "Project",
+    "ProjectInvite",
     "ProjectParticipant",
     "Settings",
     "Task",

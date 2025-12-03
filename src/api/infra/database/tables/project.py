@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import TIMESTAMP, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -42,3 +42,28 @@ class ProjectParticipant:
         primary_key=True,
     )
     role: str | None = mapped_column(String(50))
+
+
+@registry.mapped_as_dataclass(kw_only=True)
+class ProjectInvite:
+    __tablename__ = "project_invites"
+
+    token: uuid.UUID = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+
+    project_id: uuid.UUID = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    created_at: datetime = mapped_column(
+        TIMESTAMP, default=datetime.utcnow, nullable=False
+    )
+
+    expires_at: datetime = mapped_column(
+        TIMESTAMP,
+        default=lambda: datetime.now(tz=UTC) + timedelta(days=7),
+        nullable=False,
+    )

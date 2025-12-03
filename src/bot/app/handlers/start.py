@@ -10,13 +10,27 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
+    text = message.text or ""
+    user_id = message.from_user.id
+
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"http://web:80/user/{message.from_user.id}"
-        )
+        # Проверяем, есть ли пользователь в базе
+        response = await client.get(f"http://web:80/user/{user_id}")
 
     if response.status_code == status.HTTP_200_OK:
         user_data = response.json()
+
+        # Проверяем, пришёл ли токен приглашения
+        if text.startswith("/start join_"):
+            token = text.split("join_")[1]
+            async with httpx.AsyncClient() as client2:
+                r = await client2.post(
+                    f"http://web:80/project/invite/{token}/accept",
+                    json={"user_id": user_id},
+                )
+            if r.status_code == status.HTTP_200_OK:
+                await message.answer("🎉 Вы успешно присоединились к проекту!")
+
         await message.answer(
             f"С возвращением, <b>{user_data['username']}</b>!",
             reply_markup=kb.main_menu,
