@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from uuid import UUID, uuid4
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
@@ -121,8 +122,9 @@ async def update_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    for field, value in data.dict(exclude_unset=True).items():
-        setattr(project, field, value)
+    for field, value in asdict(data).items():
+        if value is not None:
+            setattr(project, field, value)
 
     await session.commit()
     return ProjectSchema(

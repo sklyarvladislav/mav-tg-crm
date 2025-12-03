@@ -23,6 +23,7 @@ async def get_user(
 
     return UserSchema(
         user_id=user.user_id,
+        short_name=user.short_name,
         username=user.username,
         number=user.number,
     )

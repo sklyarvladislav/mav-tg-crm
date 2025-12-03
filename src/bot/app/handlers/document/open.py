@@ -38,7 +38,7 @@ async def open_document(callback: CallbackQuery) -> None:
             ]
         )
 
-        await callback.message.answer(
+        await callback.message.edit_text(
             f"📄 <b>{doc['name']}</b>\n\n"
             f"Ссылка: {doc['link']}\n"
             f"ID: {doc['document_id']}",

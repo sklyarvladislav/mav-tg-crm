@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
@@ -68,7 +69,9 @@ async def get_project_participants(
 
 @router.delete("/{participant_id}")
 async def delete_participant(
-    user_id: int, project_id: UUID, session: FromDishka[AsyncSession]
+    session: FromDishka[AsyncSession],
+    user_id: int,
+    project_id: UUID,
 ) -> dict:
     stmt = select(ProjectParticipant).where(
         ProjectParticipant.project_id == project_id,
@@ -83,21 +86,27 @@ async def delete_participant(
     return {"200": "participant removed"}
 
 
-@router.patch("/{participant_id}")
+@router.patch("/{user_id}")
 async def update_participant(
-    participant_id: UUID,
     data: ParticipantUpdateSchema,
     session: FromDishka[AsyncSession],
+    user_id: int,
+    project_id: UUID,
 ) -> ParticipantSchema:
-    stmt = select(ProjectParticipant).where(
-        ProjectParticipant.user_id == participant_id
+    stmt = (
+        select(ProjectParticipant)
+        .where(ProjectParticipant.user_id == user_id)
+        .where(ProjectParticipant.project_id == project_id)
     )
     result = await session.execute(stmt)
     participant = result.scalar_one_or_none()
+
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
 
-    for field, value in data.dict(exclude_unset=True).items():
+    updates = {k: v for k, v in asdict(data).items() if v is not None}
+
+    for field, value in updates.items():
         setattr(participant, field, value)
 
     await session.commit()

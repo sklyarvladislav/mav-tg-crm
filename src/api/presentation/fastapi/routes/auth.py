@@ -21,6 +21,7 @@ async def authorization(
         created = await create.returning()(
             UserSchema(
                 user_id=request.user_id,
+                short_name=request.short_name,
                 username=request.username,
                 number=request.number,
             )
@@ -28,6 +29,7 @@ async def authorization(
 
     return UserSchema(
         user_id=created.user_id,
+        short_name=created.short_name,
         username=created.username,
         number=created.number,
     )
