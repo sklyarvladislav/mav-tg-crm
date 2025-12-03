@@ -56,6 +56,7 @@ async def show_participant(callback: CallbackQuery) -> None:
             )
         ]
         for participant in participants
+        if participant["role"] != "OWNER"
     ]
 
     keyboard_buttons.append(

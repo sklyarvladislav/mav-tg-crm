@@ -67,11 +67,11 @@ async def get_project_participants(
     ]
 
 
-@router.delete("/{participant_id}")
+@router.delete("/{project_id}/{user_id}")
 async def delete_participant(
-    session: FromDishka[AsyncSession],
-    user_id: int,
     project_id: UUID,
+    user_id: int,
+    session: FromDishka[AsyncSession],
 ) -> dict:
     stmt = select(ProjectParticipant).where(
         ProjectParticipant.project_id == project_id,
@@ -79,11 +79,14 @@ async def delete_participant(
     )
     result = await session.execute(stmt)
     participant = result.scalar_one_or_none()
+
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
+
     await session.delete(participant)
     await session.commit()
-    return {"200": "participant removed"}
+
+    return {"status": "participant removed"}
 
 
 @router.patch("/{user_id}")

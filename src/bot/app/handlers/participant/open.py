@@ -54,7 +54,7 @@ async def open_participant(callback: CallbackQuery) -> None:
                 [
                     InlineKeyboardButton(
                         text="❌ Исключить участника",
-                        callback_data=f"delete_participant_{participant['user_id']}",
+                        callback_data=f"delpart_{project_id}_{user_id}",
                     )
                 ],
                 [
@@ -66,8 +66,8 @@ async def open_participant(callback: CallbackQuery) -> None:
             ]
         )
 
-        await callback.message.answer(
-            f"📄 <b>{name}</b> (@{username})\n"
+        await callback.message.edit_text(
+            f"👤 <b>{name}</b> (@{username})\n"
             f"🆔 ID: {user_id}\n"
             f"🔑 Роль: <b>{role}</b>",
             reply_markup=keyboard,

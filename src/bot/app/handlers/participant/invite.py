@@ -2,6 +2,8 @@ import httpx
 from aiogram import F, Router
 from aiogram.types import (
     CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
 )
 
 router = Router()
@@ -27,9 +29,21 @@ async def invite(callback: CallbackQuery) -> None:
         bot_username = bot_info.username
         invite_link = f"https://t.me/{bot_username}?start=join_{token}"
 
-        await callback.message.answer(
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="⬅️ Назад",
+                        callback_data=f"get_participant_{project_id}",
+                    )
+                ]
+            ]
+        )
+
+        await callback.message.edit_text(
             "Отправьте эту ссылку пользователю, которого хотите добавить:\n"
-            f"{invite_link}"
+            f"{invite_link}",
+            reply_markup=keyboard,
         )
 
     except httpx.HTTPError as e:
