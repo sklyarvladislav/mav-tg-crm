@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String, Text
+from sqlalchemy import TIMESTAMP, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import mapped_column
 
@@ -38,11 +38,7 @@ class ProjectParticipant:
         primary_key=True,
     )
     user_id: int = mapped_column(
-        Integer,
         ForeignKey("users.user_id", ondelete="CASCADE"),
         primary_key=True,
     )
     role: str | None = mapped_column(String(50))
-    added_at: datetime = mapped_column(
-        TIMESTAMP, default=datetime.utcnow, nullable=False
-    )

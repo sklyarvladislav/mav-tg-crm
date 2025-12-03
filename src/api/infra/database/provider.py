@@ -37,6 +37,9 @@ from src.api.infra.database.core.document.gates.update import (
     UpdateDocumentGate,
 )
 from src.api.infra.database.core.project.gates.delete import DeleteProjectGate
+from src.api.infra.database.core.project.gates.delete_participant import (
+    DeleteParticipantGate,
+)
 from src.api.infra.database.core.project.gates.get import GetProjectGate
 from src.api.infra.database.core.project.gates.update import UpdateProjectGate
 from src.api.infra.database.core.task.gates.delete import DeleteTaskGate
@@ -84,6 +87,7 @@ class DatabaseProvider(Provider):
         GetProjectGate,
         UpdateProjectGate,
         DeleteProjectGate,
+        DeleteParticipantGate,
         GetDocumentGate,
         DeleteDocumentGate,
         UpdateDocumentGate,

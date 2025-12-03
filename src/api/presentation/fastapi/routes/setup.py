@@ -16,6 +16,9 @@ from src.api.presentation.fastapi.routes.document import (
 from src.api.presentation.fastapi.routes.healthcheck import (
     router as healthcheck_router,
 )
+from src.api.presentation.fastapi.routes.participant import (
+    router as participant_router,
+)
 from src.api.presentation.fastapi.routes.project import (
     router as project_router,
 )
@@ -36,4 +39,7 @@ def setup_routes(app: FastAPI) -> None:
         column_router, prefix="/column", tags=["Columns of board"]
     )
     app.include_router(task_router, prefix="/task", tags=["Task"])
+    app.include_router(
+        participant_router, prefix="/participant", tags=["Participant"]
+    )
     logger.info("Routes set up")

@@ -40,6 +40,7 @@ async def create_task(
                 deadline=request.deadline,
                 status=request.status,
                 priority=request.priority,
+                number=request.number,
             )
         )
 
@@ -55,6 +56,7 @@ async def create_task(
         deadline=created.deadline,
         status=created.status,
         priority=created.priority,
+        number=created.number,
     )
 
 

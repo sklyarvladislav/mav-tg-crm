@@ -41,11 +41,21 @@ async def open_task(callback: CallbackQuery) -> None:
         ]
     )
 
+    document_link = None
+    if task.get("document_id"):
+        async with httpx.AsyncClient() as client:
+            doc_resp = await client.get(
+                f"http://web:80/document/{task['document_id']}"
+            )
+        if doc_resp.status_code == status.HTTP_200_OK:
+            document = doc_resp.json()
+            document_link = document.get("link")
+
     await callback.message.edit_text(
         f"📝 Задача:\n\n"
         f"Название: {task['name']}\n"
         f"Описание: {task['text']}\n"
-        f"Медиа: {task['document_id']}\n"
+        f"Медиа: {document_link or 'Нет'}\n"
         f"Исполнитель: {task['user_id']}\n"
         f"Статус: {task['status']}\n"
         f"Приоритет: {task['priority']}\n"

@@ -46,6 +46,6 @@ class Task:
     deadline: datetime | None = mapped_column(
         TIMESTAMP(timezone=True), default=None
     )
-    number: int = mapped_column(Integer, default=0)
+    number: int = mapped_column(Integer)
     status: str = mapped_column(String(25), default="NOT_DONE")
     priority: str = mapped_column(String(25), default="WITHOUT")

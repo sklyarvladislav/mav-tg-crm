@@ -296,8 +296,8 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
             f"http://web:80/task/{data['project_id']}/tasks"
         )
         tasks = resp.json() if resp.status_code == status.HTTP_200_OK else []
-        number = max((t.get("number", -1) for t in tasks), default=-1) + 1
-
+        number = len(tasks) + 1
+        logger.info(number)
         payload = {
             "task_id": str(uuid4()),
             "name": data.get("task_name") or "Без названия",
