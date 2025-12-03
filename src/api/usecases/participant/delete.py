@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from src.api.infra.database.core.project.gates.delete_participant import (
+from src.api.infra.database.core.participant.gates import (
     DeleteParticipantGate,
 )
 

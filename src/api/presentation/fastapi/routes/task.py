@@ -12,9 +12,11 @@ from src.api.application.schemas.task import (
 )
 from src.api.infra.database.common import CreateGate
 from src.api.infra.database.tables.task import Task
-from src.api.usecases.task.delete_task import DeleteTaskUsecase
-from src.api.usecases.task.get_task import GetTaskUsecase
-from src.api.usecases.task.update_task import UpdateTaskUsecase
+from src.api.usecases.task import (
+    DeleteTaskUsecase,
+    GetTaskUsecase,
+    UpdateTaskUsecase,
+)
 
 logger = get_logger()
 router = APIRouter(route_class=DishkaRoute)

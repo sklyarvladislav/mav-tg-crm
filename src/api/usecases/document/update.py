@@ -5,7 +5,7 @@ from src.api.application.schemas.document import (
     DocumentSchema,
     DocumentUpdateSchema,
 )
-from src.api.infra.database.core.document.gates.update import (
+from src.api.infra.database.core.document.gates import (
     UpdateDocumentGate,
 )
 

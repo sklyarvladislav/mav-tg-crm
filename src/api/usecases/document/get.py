@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from src.api.application.schemas.document import DocumentSchema
-from src.api.infra.database.core.document.gates.get import GetDocumentGate
+from src.api.infra.database.core.document.gates import GetDocumentGate
 
 
 @dataclass(slots=True, frozen=True, kw_only=True)

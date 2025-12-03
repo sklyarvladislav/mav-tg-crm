@@ -5,7 +5,7 @@ from src.api.application.schemas.board import (
     BoardColumnSchema,
     BoardColumnUpdateSchema,
 )
-from src.api.infra.database.core.column.gates.update import (
+from src.api.infra.database.core.column.gates import (
     UpdateBoardColumnGate,
 )
 

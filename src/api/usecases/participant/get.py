@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.api.application.schemas.participant import ParticipantSchema
-from src.api.infra.database.core.project.gates.get_participant import (
+from src.api.infra.database.core.participant.gates import (
     GetParticipantGate,
 )
 
