@@ -10,6 +10,7 @@ from src.api.usecases.document.delete_document import DeleteDocumentUsecase
 from src.api.usecases.document.get_document import GetDocumentUsecase
 from src.api.usecases.document.update_document import UpdateDocumentUsecase
 from src.api.usecases.participant.delete import DeleteParticipantUsecase
+from src.api.usecases.participant.get import GetParticipantUsecase
 from src.api.usecases.project.delete_project import DeleteProjectUsecase
 from src.api.usecases.project.get_project import GetProjectUsecase
 from src.api.usecases.project.update_project import UpdateProjectUsecase
@@ -36,5 +37,6 @@ class UsecaseProvider(Provider):
         DeleteTaskUsecase,
         UpdateTaskUsecase,
         DeleteParticipantUsecase,
+        GetParticipantUsecase,
         scope=Scope.REQUEST,
     )

@@ -51,14 +51,19 @@ async def open_task(callback: CallbackQuery) -> None:
             document = doc_resp.json()
             document_link = document.get("link")
 
+    responsible = task["user_id"] or " "
+    deadline = task["deadline"] or "Без дедлайна"
+    status_of_task = (
+        "Выполнено" if task["status"] == "DONE" else "Не выполнено"
+    )
     await callback.message.edit_text(
         f"📝 Задача:\n\n"
         f"Название: {task['name']}\n"
         f"Описание: {task['text']}\n"
         f"Медиа: {document_link or 'Нет'}\n"
-        f"Исполнитель: {task['user_id']}\n"
-        f"Статус: {task['status']}\n"
+        f"Исполнитель: {responsible}\n"
+        f"Статус: {status_of_task}\n"
         f"Приоритет: {task['priority']}\n"
-        f"Дедлайн: {task['deadline']}\n",
+        f"Дедлайн: {deadline}\n",
         reply_markup=keyboard,
     )

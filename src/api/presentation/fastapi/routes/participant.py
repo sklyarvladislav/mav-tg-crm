@@ -13,6 +13,7 @@ from src.api.application.schemas.participant import (
 from src.api.infra.database.common import CreateGate
 from src.api.infra.database.tables.project import ProjectParticipant
 from src.api.usecases.participant.delete import DeleteParticipantUsecase
+from src.api.usecases.participant.get import GetParticipantUsecase
 from src.api.usecases.participant.role import ChangeRoleParticipantUsecase
 
 logger = get_logger()
@@ -42,8 +43,11 @@ async def create_participant(
 
 
 @router.get("/{participant_id}")
-async def get_participant() -> ParticipantSchema:
-    return {"200": "success"}
+async def get_participant(
+    usecase: FromDishka[GetParticipantUsecase],
+    user_id: int,
+) -> ParticipantSchema:
+    return await usecase(user_id=user_id)
 
 
 @router.get("/{project_id}/participants")
