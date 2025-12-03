@@ -21,7 +21,7 @@ async def send_projects_list(
         user_id = message.from_user.id
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/project/owner/{user_id}")
+        response = await client.get(f"http://web:80/project/user/{user_id}")
 
     if response.status_code != status.HTTP_200_OK:
         await message.answer("Не удалось получить список проектов")

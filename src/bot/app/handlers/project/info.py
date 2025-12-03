@@ -7,8 +7,10 @@ from aiogram.types import (
     Message,
 )
 from fastapi import status
+from structlog import get_logger
 
 router = Router()
+logger = get_logger()
 
 
 async def show_project_screen(message: Message, project_id: str) -> None:
@@ -22,14 +24,24 @@ async def show_project_screen(message: Message, project_id: str) -> None:
     project = response.json()
 
     async with httpx.AsyncClient() as client2:
-        user_response = await client2.get(
-            f"http://web:80/user/{project['owner']}"
+        participants_resp = await client2.get(
+            f"http://web:80/participant/{project_id}/participants"
         )
-        owner_name = (
-            user_response.json()["username"]
-            if user_response.status_code == status.HTTP_200_OK
-            else "ошибка получения имени :("
-        )
+
+        owner_name = "ошибка получения имени :("
+        if participants_resp.status_code == status.HTTP_200_OK:
+            participants = participants_resp.json()
+            logger.info(participants)
+            owner = next(
+                (p for p in participants if p["role"] == "OWNER"), None
+            )
+            if owner:
+                # получаем username владельца
+                user_resp = await client2.get(
+                    f"http://web:80/user/{owner['user_id']}"
+                )
+                if user_resp.status_code == status.HTTP_200_OK:
+                    owner_name = user_resp.json().get("username", "Не найдено")
 
     keyboard_buttons = [
         [

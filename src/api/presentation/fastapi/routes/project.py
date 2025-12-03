@@ -1,24 +1,18 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from structlog import get_logger
 
+from src.api.application.schemas.participant import ParticipantSchema
 from src.api.application.schemas.project import (
     ProjectSchema,
     ProjectUpdateSchema,
 )
 from src.api.infra.database.common import CreateGate
-from src.api.infra.database.tables.project import Project
-from src.api.usecases.project import (
-    DeleteProjectUsecase,
-    GetProjectUsecase,
-    UpdateProjectUsecase,
-)
+from src.api.infra.database.tables.project import Project, ProjectParticipant
 
-logger = get_logger()
 router = APIRouter(route_class=DishkaRoute)
 
 
@@ -27,63 +21,68 @@ async def create_project(
     request: ProjectSchema,
     session: FromDishka[AsyncSession],
     create: FromDishka[CreateGate[Project, ProjectSchema]],
+    create_participant: FromDishka[
+        CreateGate[ProjectParticipant, ParticipantSchema]
+    ],
+    user_id: int,
 ) -> ProjectSchema:
     async with session.begin():
-        created = await create.returning()(
+        created_project = await create.returning()(
             ProjectSchema(
-                project_id=request.project_id,
+                project_id=uuid4(),
                 name=request.name,
                 description=request.description,
                 status=request.status,
-                owner=request.owner,
+            )
+        )
+
+        await create_participant(
+            ParticipantSchema(
+                project_id=created_project.project_id,
+                user_id=user_id,
+                role="OWNER",
             )
         )
 
     return ProjectSchema(
-        project_id=created.project_id,
-        name=created.name,
-        description=created.description,
-        status=created.status,
-        owner=created.owner,
+        project_id=created_project.project_id,
+        name=created_project.name,
+        description=created_project.description,
+        status=created_project.status,
     )
 
 
 @router.get("/{project_id}")
 async def get_project(
-    usecase: FromDishka[GetProjectUsecase],
-    project_id: UUID,
+    project_id: UUID, session: FromDishka[AsyncSession]
 ) -> ProjectSchema:
-    return await usecase(project_id=project_id)
+    stmt = select(Project).where(Project.project_id == project_id)
+    result = await session.execute(stmt)
+    project = result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return ProjectSchema(
+        project_id=project.project_id,
+        name=project.name,
+        description=project.description,
+        status=project.status,
+    )
 
 
-@router.delete("/{project_id}")
-async def delete_project(
-    usecase: FromDishka[DeleteProjectUsecase],
-    project_id: UUID,
-) -> dict:
-    await usecase(project_id=project_id)
-    return {"200": "project removed"}
-
-
-@router.patch("/{project_id}")
-async def update_project(
-    usecase: FromDishka[UpdateProjectUsecase],
-    project_id: UUID,
-    data: ProjectUpdateSchema,
-) -> ProjectSchema:
-    return await usecase(project_id=project_id, data=data)
-
-
-@router.get("/owner/{owner_id}")
-async def get_projects_by_owner(
-    owner_id: int,
-    session: FromDishka[AsyncSession],
+@router.get("/user/{user_id}")
+async def get_projects_by_user(
+    user_id: int, session: FromDishka[AsyncSession]
 ) -> list[ProjectSchema]:
-    async with session.begin():
-        result = await session.execute(
-            select(Project).where(Project.owner == owner_id)
+    stmt = (
+        select(Project)
+        .join(
+            ProjectParticipant,
+            Project.project_id == ProjectParticipant.project_id,
         )
-        projects = result.scalars().all()
+        .where(ProjectParticipant.user_id == user_id)
+    )
+    result = await session.execute(stmt)
+    projects = result.scalars().all()
 
     return [
         ProjectSchema(
@@ -91,7 +90,44 @@ async def get_projects_by_owner(
             name=p.name,
             description=p.description,
             status=p.status,
-            owner=p.owner,
         )
         for p in projects
     ]
+
+
+@router.delete("/{project_id}")
+async def delete_project(
+    project_id: UUID, session: FromDishka[AsyncSession]
+) -> dict:
+    stmt = select(Project).where(Project.project_id == project_id)
+    result = await session.execute(stmt)
+    project = result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    await session.delete(project)
+    await session.commit()
+    return {"200": "project removed"}
+
+
+@router.patch("/{project_id}")
+async def update_project(
+    project_id: UUID,
+    data: ProjectUpdateSchema,
+    session: FromDishka[AsyncSession],
+) -> ProjectSchema:
+    stmt = select(Project).where(Project.project_id == project_id)
+    result = await session.execute(stmt)
+    project = result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    for field, value in data.dict(exclude_unset=True).items():
+        setattr(project, field, value)
+
+    await session.commit()
+    return ProjectSchema(
+        project_id=project.project_id,
+        name=project.name,
+        description=project.description,
+        status=project.status,
+    )

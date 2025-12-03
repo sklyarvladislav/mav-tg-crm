@@ -1,10 +1,9 @@
 from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from structlog import get_logger
 
 from src.api.application.schemas.participant import (
     ParticipantSchema,
@@ -12,13 +11,7 @@ from src.api.application.schemas.participant import (
 )
 from src.api.infra.database.common import CreateGate
 from src.api.infra.database.tables.project import ProjectParticipant
-from src.api.usecases.participant import (
-    ChangeRoleParticipantUsecase,
-    DeleteParticipantUsecase,
-    GetParticipantUsecase,
-)
 
-logger = get_logger()
 router = APIRouter(route_class=DishkaRoute)
 
 
@@ -29,13 +22,7 @@ async def create_participant(
     create: FromDishka[CreateGate[ProjectParticipant, ParticipantSchema]],
 ) -> ParticipantSchema:
     async with session.begin():
-        created = await create.returning()(
-            ParticipantSchema(
-                project_id=request.project_id,
-                user_id=request.user_id,
-                role=request.role,
-            )
-        )
+        created = await create.returning()(request)
 
     return ParticipantSchema(
         project_id=created.project_id,
@@ -46,29 +33,34 @@ async def create_participant(
 
 @router.get("/{user_id}")
 async def get_participant(
-    usecase: FromDishka[GetParticipantUsecase],
-    user_id: int,
-) -> ParticipantSchema:
-    return await usecase(user_id=user_id)
-
-
-@router.get("/{project_id}/participants")
-async def get_project_participants(
-    project_id: UUID,
-    session: FromDishka[AsyncSession],
+    user_id: int, session: FromDishka[AsyncSession]
 ) -> list[ParticipantSchema]:
     stmt = select(ProjectParticipant).where(
-        ProjectParticipant.project_id == project_id
+        ProjectParticipant.user_id == user_id
     )
-
     result = await session.execute(stmt)
     participants = result.scalars().all()
 
     return [
         ParticipantSchema(
-            project_id=p.project_id,
-            user_id=p.user_id,
-            role=p.role,
+            project_id=p.project_id, user_id=p.user_id, role=p.role
+        )
+        for p in participants
+    ]
+
+
+@router.get("/{project_id}/participants")
+async def get_project_participants(
+    project_id: UUID, session: FromDishka[AsyncSession]
+) -> list[ParticipantSchema]:
+    stmt = select(ProjectParticipant).where(
+        ProjectParticipant.project_id == project_id
+    )
+    result = await session.execute(stmt)
+    participants = result.scalars().all()
+    return [
+        ParticipantSchema(
+            project_id=p.project_id, user_id=p.user_id, role=p.role
         )
         for p in participants
     ]
@@ -76,18 +68,41 @@ async def get_project_participants(
 
 @router.delete("/{participant_id}")
 async def delete_participant(
-    usecase: FromDishka[DeleteParticipantUsecase],
-    user_id: int,
-    project_id: UUID,
+    user_id: int, project_id: UUID, session: FromDishka[AsyncSession]
 ) -> dict:
-    await usecase(user_id=user_id, project_id=project_id)
+    stmt = select(ProjectParticipant).where(
+        ProjectParticipant.project_id == project_id,
+        ProjectParticipant.user_id == user_id,
+    )
+    result = await session.execute(stmt)
+    participant = result.scalar_one_or_none()
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    await session.delete(participant)
+    await session.commit()
     return {"200": "participant removed"}
 
 
 @router.patch("/{participant_id}")
 async def update_participant(
-    usecase: FromDishka[ChangeRoleParticipantUsecase],
     participant_id: UUID,
     data: ParticipantUpdateSchema,
+    session: FromDishka[AsyncSession],
 ) -> ParticipantSchema:
-    return await usecase(participant_id=participant_id, data=data)
+    stmt = select(ProjectParticipant).where(
+        ProjectParticipant.user_id == participant_id
+    )
+    result = await session.execute(stmt)
+    participant = result.scalar_one_or_none()
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+
+    for field, value in data.dict(exclude_unset=True).items():
+        setattr(participant, field, value)
+
+    await session.commit()
+    return ParticipantSchema(
+        project_id=participant.project_id,
+        user_id=participant.user_id,
+        role=participant.role,
+    )

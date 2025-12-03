@@ -19,7 +19,6 @@ class GetProjectGate(PostgresGate):
             Project.name,
             Project.description,
             Project.status,
-            Project.owner,
         ).where(Project.project_id == project_id)
 
         return self.retort.load(

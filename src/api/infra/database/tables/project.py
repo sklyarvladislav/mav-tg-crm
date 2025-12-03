@@ -20,9 +20,6 @@ class Project:
     name: str = mapped_column(String(100), nullable=False)
     description: str | None = mapped_column(Text)
     status: str | None = mapped_column(String(25), default=None)
-    owner: int | None = mapped_column(
-        ForeignKey("users.user_id", ondelete="CASCADE")
-    )
     created_at: datetime = mapped_column(
         TIMESTAMP, default=datetime.utcnow, nullable=False
     )
@@ -59,11 +56,11 @@ class ProjectInvite:
     )
 
     created_at: datetime = mapped_column(
-        TIMESTAMP, default=datetime.utcnow, nullable=False
+        TIMESTAMP(timezone=True), default=datetime.now(UTC), nullable=False
     )
 
     expires_at: datetime = mapped_column(
-        TIMESTAMP,
-        default=lambda: datetime.now(tz=UTC) + timedelta(days=7),
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(UTC) + timedelta(days=7),
         nullable=False,
     )
