@@ -19,22 +19,36 @@ from src.api.infra.database.common import (
     GetOneGate,
     UpdateGate,
 )
-from src.api.infra.database.core.board.gates.delete import DeleteBoardGate
-from src.api.infra.database.core.board.gates.get import GetBoardGate
-from src.api.infra.database.core.board.gates.update import UpdateBoardGate
-from src.api.infra.database.core.document.gates.delete import (
-    DeleteDocumentGate,
+from src.api.infra.database.core.board.gates import (
+    DeleteBoardGate,
+    GetBoardGate,
+    UpdateBoardGate,
 )
-from src.api.infra.database.core.document.gates.get import GetDocumentGate
-from src.api.infra.database.core.document.gates.update import (
+from src.api.infra.database.core.column.gates import (
+    DeleteBoardColumnGate,
+    GetBoardColumnGate,
+    UpdateBoardColumnGate,
+)
+from src.api.infra.database.core.document.gates import (
+    DeleteDocumentGate,
+    GetDocumentGate,
     UpdateDocumentGate,
 )
-from src.api.infra.database.core.project.gates.delete import DeleteProjectGate
-from src.api.infra.database.core.project.gates.get import GetProjectGate
-from src.api.infra.database.core.project.gates.update import UpdateProjectGate
-from src.api.infra.database.core.task.gates.delete import DeleteTaskGate
-from src.api.infra.database.core.task.gates.get import GetTaskGate
-from src.api.infra.database.core.task.gates.update import UpdateTaskGate
+from src.api.infra.database.core.participant.gates import (
+    DeleteParticipantGate,
+    GetParticipantGate,
+    UpdateParticipantGate,
+)
+from src.api.infra.database.core.project.gates import (
+    DeleteProjectGate,
+    GetProjectGate,
+    UpdateProjectGate,
+)
+from src.api.infra.database.core.task.gates import (
+    DeleteTaskGate,
+    GetTaskGate,
+    UpdateTaskGate,
+)
 from src.api.infra.database.core.version.gates import GetVersionsGate
 from src.core.config import Config
 
@@ -70,19 +84,32 @@ class DatabaseProvider(Provider):
     )
 
     _get_base_gates = provide_all(
+        # Gates
         GetOneGate,
         CreateGate,
         UpdateGate,
         DeleteGate,
+        # Project
         GetProjectGate,
         UpdateProjectGate,
         DeleteProjectGate,
+        # Participant
+        DeleteParticipantGate,
+        GetParticipantGate,
+        UpdateParticipantGate,
+        # Document
         GetDocumentGate,
         DeleteDocumentGate,
         UpdateDocumentGate,
+        # Board
         GetBoardGate,
         DeleteBoardGate,
         UpdateBoardGate,
+        # Board Column
+        GetBoardColumnGate,
+        DeleteBoardColumnGate,
+        UpdateBoardColumnGate,
+        # Task
         GetTaskGate,
         DeleteTaskGate,
         UpdateTaskGate,

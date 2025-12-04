@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String, Text
+from sqlalchemy import TIMESTAMP, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import mapped_column
 
@@ -20,7 +20,6 @@ class Project:
     name: str = mapped_column(String(100), nullable=False)
     description: str | None = mapped_column(Text)
     status: str | None = mapped_column(String(25), default=None)
-    owner: int | None = mapped_column(ForeignKey("users.user_id"))
     created_at: datetime = mapped_column(
         TIMESTAMP, default=datetime.utcnow, nullable=False
     )
@@ -36,11 +35,32 @@ class ProjectParticipant:
         primary_key=True,
     )
     user_id: int = mapped_column(
-        Integer,
         ForeignKey("users.user_id", ondelete="CASCADE"),
         primary_key=True,
     )
     role: str | None = mapped_column(String(50))
-    added_at: datetime = mapped_column(
-        TIMESTAMP, default=datetime.utcnow, nullable=False
+
+
+@registry.mapped_as_dataclass(kw_only=True)
+class ProjectInvite:
+    __tablename__ = "project_invites"
+
+    token: uuid.UUID = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+
+    project_id: uuid.UUID = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    created_at: datetime = mapped_column(
+        TIMESTAMP(timezone=True), default=datetime.now(UTC), nullable=False
+    )
+
+    expires_at: datetime = mapped_column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(UTC) + timedelta(days=7),
+        nullable=False,
     )

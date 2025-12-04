@@ -8,7 +8,6 @@ class ProjectSchema:
     name: str
     description: str
     status: str
-    owner: int
 
 
 @dataclass(slots=True, kw_only=True)
@@ -16,4 +15,3 @@ class ProjectUpdateSchema:
     name: str | None = None
     description: str | None = None
     status: str | None = None
-    owner: int | None = None

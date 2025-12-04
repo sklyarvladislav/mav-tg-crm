@@ -2,6 +2,7 @@ from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog import get_logger
 
@@ -11,9 +12,11 @@ from src.api.application.schemas.board import (
 )
 from src.api.infra.database.common import CreateGate
 from src.api.infra.database.tables.board import Board
-from src.api.usecases.board.delete_board import DeleteBoardUsecase
-from src.api.usecases.board.get_board import GetBoardUsecase
-from src.api.usecases.board.update_board import UpdateBoardUsecase
+from src.api.usecases.board import (
+    DeleteBoardUsecase,
+    GetBoardUsecase,
+    UpdateBoardUsecase,
+)
 
 logger = get_logger()
 router = APIRouter(route_class=DishkaRoute)
@@ -51,6 +54,29 @@ async def get_board(
     board_id: UUID,
 ) -> BoardSchema:
     return await usecase(board_id=board_id)
+
+
+@router.get("/{project_id}/boards")
+async def get_project_documents(
+    project_id: UUID,
+    session: FromDishka[AsyncSession],
+) -> list[BoardSchema]:
+    async with session.begin():
+        result = await session.execute(
+            select(Board).where(Board.project_id == project_id)
+        )
+        boards = result.scalars().all()
+
+    return [
+        BoardSchema(
+            board_id=board.board_id,
+            project_id=board.project_id,
+            name=board.name,
+            position=board.position,
+            number_tasks=board.number_tasks,
+        )
+        for board in boards
+    ]
 
 
 @router.delete("/{board_id}")
