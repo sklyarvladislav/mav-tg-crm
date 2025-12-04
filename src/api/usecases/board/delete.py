@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from src.api.infra.database.core.board.gates.delete import (
+from src.api.infra.database.core.board.gates import (
     DeleteBoardGate,
 )
 

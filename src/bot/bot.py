@@ -16,6 +16,12 @@ from app.handlers.document import (
     make_document_router,
     open_document_router,
 )
+from app.handlers.participant import (
+    delete_participant_router,
+    get_participant_router,
+    invite_participant_router,
+    open_participant_router,
+)
 from app.handlers.project import (
     delete_project_router,
     get_project_router,
@@ -24,6 +30,12 @@ from app.handlers.project import (
     settings_project_router,
 )
 from app.handlers.start import router as start_router
+from app.handlers.task import (
+    delete_task_router,
+    get_task_router,
+    make_task_router,
+    open_task_router,
+)
 from app.handlers.user import (
     profile_router,
     regist_router,
@@ -65,6 +77,11 @@ async def main() -> None:
         settings_project_router,
         get_project_router,
         delete_project_router,
+        # participant
+        get_participant_router,
+        open_participant_router,
+        invite_participant_router,
+        delete_participant_router,
         # document
         make_document_router,
         get_document_router,
@@ -75,6 +92,11 @@ async def main() -> None:
         get_board_router,
         delete_board_router,
         open_board_router,
+        # task
+        get_task_router,
+        open_task_router,
+        make_task_router,
+        delete_task_router,
         # unknownmes
         unknownmes_router,
     ]

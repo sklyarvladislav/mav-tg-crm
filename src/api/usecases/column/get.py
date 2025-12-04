@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from src.api.application.schemas.board import BoardColumnSchema
-from src.api.infra.database.core.column.gates.get import GetBoardColumnGate
+from src.api.infra.database.core.column.gates import GetBoardColumnGate
 
 
 @dataclass(slots=True, frozen=True, kw_only=True)

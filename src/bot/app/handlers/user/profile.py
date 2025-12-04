@@ -19,7 +19,8 @@ async def profile(message: Message) -> None:
         await message.answer(
             f"<b>Ваш профиль 👤</b>\n\n"
             f"Имя: {user_data['username']}\n"
-            f"Номер телефона: {user_data['number']}\n",
+            f"Username: @{user_data['short_name']}\n"
+            f"Номер телефона: +{user_data['number']}\n",
             reply_markup=kb.back_from_profile,
         )
     else:

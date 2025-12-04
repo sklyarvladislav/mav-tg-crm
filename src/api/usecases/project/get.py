@@ -17,5 +17,4 @@ class GetProjectUsecase:
             name=project.name,
             description=project.description,
             status=project.status,
-            owner=project.owner,
         )

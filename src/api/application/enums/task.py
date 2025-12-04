@@ -7,6 +7,7 @@ class StatusTask(BaseENUM):
 
 
 class PriorityTask(BaseENUM):
+    WITHOUT = "WITHOUT"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"

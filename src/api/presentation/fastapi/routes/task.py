@@ -2,6 +2,7 @@ from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog import get_logger
 
@@ -11,9 +12,11 @@ from src.api.application.schemas.task import (
 )
 from src.api.infra.database.common import CreateGate
 from src.api.infra.database.tables.task import Task
-from src.api.usecases.task.delete_task import DeleteTaskUsecase
-from src.api.usecases.task.get_task import GetTaskUsecase
-from src.api.usecases.task.update_task import UpdateTaskUsecase
+from src.api.usecases.task import (
+    DeleteTaskUsecase,
+    GetTaskUsecase,
+    UpdateTaskUsecase,
+)
 
 logger = get_logger()
 router = APIRouter(route_class=DishkaRoute)
@@ -39,6 +42,7 @@ async def create_task(
                 deadline=request.deadline,
                 status=request.status,
                 priority=request.priority,
+                number=request.number,
             )
         )
 
@@ -54,6 +58,7 @@ async def create_task(
         deadline=created.deadline,
         status=created.status,
         priority=created.priority,
+        number=created.number,
     )
 
 
@@ -63,6 +68,35 @@ async def get_task(
     task_id: UUID,
 ) -> TaskSchema:
     return await usecase(task_id=task_id)
+
+
+@router.get("/{project_id}/tasks")
+async def get_project_tasks(
+    project_id: UUID,
+    session: FromDishka[AsyncSession],
+) -> list[TaskSchema]:
+    async with session.begin():
+        result = await session.execute(
+            select(Task).where(Task.project_id == project_id)
+        )
+        tasks = result.scalars().all()
+
+    return [
+        TaskSchema(
+            task_id=task.task_id,
+            name=task.name,
+            text=task.text,
+            document_id=task.document_id,
+            user_id=task.user_id,
+            project_id=task.project_id,
+            board_id=task.board_id,
+            column_id=task.column_id,
+            number=task.number,
+            status=task.status,
+            priority=task.priority,
+        )
+        for task in tasks
+    ]
 
 
 @router.delete("/{task_id}")
