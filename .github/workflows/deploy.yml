@@ -22,9 +22,7 @@ jobs:
 
       - name: Deploy to RUVDS
         run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-            cd mav-tg-crm && \
-            git pull origin main && \
-            make compose
-          "
-
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd mav-tg-crm
+          git pull origin main
+          make compose
