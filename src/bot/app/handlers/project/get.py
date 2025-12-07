@@ -30,11 +30,20 @@ async def send_projects_list(
     projects = response.json()
     keyboard = []
 
+    status_emoji = {
+        "В работе": "🟢",
+        "На паузе": "🟡",
+        "Выполнен": "✅",
+        "Отменен": "🔴",
+    }
+
     for project in projects:
+        emoji = status_emoji.get(project.get("status", ""), "")
+
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    text=project["name"],
+                    text=f"{emoji} {project['name']}",
                     callback_data=f"project_{project['project_id']}",
                 )
             ]

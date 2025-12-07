@@ -2,7 +2,7 @@ import app.keyboards as kb
 import httpx
 from aiogram import Router, types
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from fastapi import status
 
 router = Router()
@@ -43,8 +43,42 @@ async def cmd_start(message: Message) -> None:
 
 
 @router.message(Command("about"))
-async def about_cmd(message: Message) -> None:
-    await message.answer("Тут будет инфо о боте")
+async def about_command(message: Message) -> None:
+    photo_url = "https://i.postimg.cc/59gnGYX9/image-2025-09-28-18-29-25.png"
+
+    # Клавиатура с кнопками-ссылками на профили создателей
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="👤 Алексей", url="https://t.me/lexsik"
+                ),
+                InlineKeyboardButton(
+                    text="👤 Макар", url="https://t.me/W1se_tree"
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="👤 Владислав", url="https://t.me/sklyarvlad"
+                )
+            ],
+        ]
+    )
+
+    await message.answer_photo(
+        photo=photo_url,
+        caption=(
+            "📋 О сервисе MAV CRM\n\n"
+            "Telegram-бот для управления проектами и задачами.\n\n"
+            "Возможности:\n"
+            "🚀 Создание и управление проектами\n"
+            "📝 Управление задачами\n"
+            "👥 Работа с участниками\n"
+            "📄 Документы и доски\n\n"
+            "Используйте /menu для перехода в главное меню"
+        ),
+        reply_markup=keyboard,
+    )
 
 
 @router.message(Command("menu"))
