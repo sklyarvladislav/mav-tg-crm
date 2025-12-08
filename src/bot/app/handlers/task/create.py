@@ -221,8 +221,28 @@ async def choose_priority(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.update_data(priority=callback.data.replace("priority_", ""))
 
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🚫 Нет (без дедлайна)", callback_data="deadline_none"
+                )
+            ]
+        ]
+    )
+
     await state.set_state(MakeTask.deadline)
-    await callback.message.answer("Введите дедлайн (YYYY-MM-DD) или «нет»:")
+    await callback.message.answer(
+        "Введите дедлайн (YYYY-MM-DD) или нажмите кнопку ниже:",
+        reply_markup=keyboard,
+    )
+
+
+@router.callback_query(MakeTask.deadline, F.data == "deadline_none")
+async def skip_deadline(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await state.update_data(deadline=None)
+    await start_executor_select(callback.message, state)
 
 
 @router.message(MakeTask.deadline)
@@ -242,40 +262,58 @@ async def enter_deadline(message: Message, state: FSMContext) -> None:
             return
 
     await state.update_data(deadline=deadline_value)
+    await start_executor_select(message, state)
+
+
+async def start_executor_select(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    project_id = data["project_id"]
+
+    keyboard_buttons = []
 
     async with httpx.AsyncClient() as client:
-        resp = await client.get("http://web:80/user/list")
+        resp = await client.get(
+            f"http://web:80/participant/{project_id}/participants"
+        )
 
-    if resp.status_code == status.HTTP_200_OK:
-        users = resp.json()
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=user["full_name"],
-                        callback_data=f"user_{user['user_id']}",
+        if resp.status_code == status.HTTP_200_OK:
+            participants = resp.json()
+
+            for p in participants:
+                user_id = p["user_id"]
+                role = p["role"]
+
+                user_resp = await client.get(f"http://web:80/user/{user_id}")
+                if user_resp.status_code == status.HTTP_200_OK:
+                    user_data = user_resp.json()
+                    name = (
+                        user_data.get("username")
+                        or user_data.get("short_name")
+                        or f"ID {user_id}"
                     )
-                ]
-                for user in users
-            ]
-            + [
-                [
-                    InlineKeyboardButton(
-                        text="Без исполнителя", callback_data="user_none"
-                    )
-                ]
-            ]
-        )
-    else:
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="Без исполнителя", callback_data="user_none"
-                    )
-                ]
-            ]
-        )
+                else:
+                    name = f"ID {user_id}"
+
+                keyboard_buttons.append(
+                    [
+                        InlineKeyboardButton(
+                            text=f"{name} ({role})",
+                            callback_data=f"user_{user_id}",
+                        )
+                    ]
+                )
+        else:
+            await message.answer("⚠️ Не удалось загрузить участников проекта.")
+
+    keyboard_buttons.append(
+        [
+            InlineKeyboardButton(
+                text="🚫 Без исполнителя", callback_data="user_none"
+            )
+        ]
+    )
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
     await state.set_state(MakeTask.executor)
     await message.answer("Выберите исполнителя:", reply_markup=keyboard)
@@ -297,7 +335,7 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
         )
         tasks = resp.json() if resp.status_code == status.HTTP_200_OK else []
         number = len(tasks) + 1
-        logger.info(number)
+
         payload = {
             "task_id": str(uuid4()),
             "name": data.get("task_name") or "Без названия",
@@ -336,9 +374,8 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.answer(
         f"✅ Задача создана!\n\n"
         f"Название: {task['name']}\n"
-        f"ID: {task['task_id']}\n"
-        f"Приоритет: {task['priority']}\n"
-        f"Номер: {task['number']}",
+        f"Номер: {task.get('number', '-')}\n"
+        f"Приоритет: {task['priority']}",
         reply_markup=keyboard,
     )
 

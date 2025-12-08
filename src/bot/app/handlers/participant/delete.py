@@ -19,7 +19,7 @@ async def lp_confirm(callback: CallbackQuery) -> None:
             [
                 InlineKeyboardButton(
                     text="🚪 Да, выйти",
-                    callback_data=f"clp_{project_id}",  # <--- ИЗМЕНЕНО
+                    callback_data=f"clp_{project_id}",
                 )
             ],
             [
@@ -37,9 +37,9 @@ async def lp_confirm(callback: CallbackQuery) -> None:
     )
 
 
-@router.callback_query(F.data.startswith("clp_"))  # <--- ИЗМЕНЕНО
+@router.callback_query(F.data.startswith("clp_"))
 async def lp_execute(callback: CallbackQuery) -> None:
-    project_id = callback.data.replace("clp_", "")  # <--- ИЗМЕНЕНО
+    project_id = callback.data.replace("clp_", "")
     user_id = callback.from_user.id
 
     await execute_delete(callback, project_id, user_id, is_self_leave=True)
@@ -62,13 +62,13 @@ async def kp_confirm(callback: CallbackQuery) -> None:
             [
                 InlineKeyboardButton(
                     text="❌ Да, исключить",
-                    callback_data=f"ckp_{project_id}_{target_user_id}",  # <--- ИЗМЕНЕНО
+                    callback_data=f"ckp_{project_id}_{target_user_id}",
                 )
             ],
             [
                 InlineKeyboardButton(
                     text="⬅️ Отмена",
-                    callback_data=f"mp_{project_id}_{target_user_id}",  # <--- СОКРАЩЕНО
+                    callback_data=f"mp_{project_id}_{target_user_id}",
                 )
             ],
         ]
@@ -80,7 +80,7 @@ async def kp_confirm(callback: CallbackQuery) -> None:
     )
 
 
-@router.callback_query(F.data.startswith("ckp_"))  # <--- ИЗМЕНЕНО
+@router.callback_query(F.data.startswith("ckp_"))
 async def kp_execute(callback: CallbackQuery) -> None:
     parts = callback.data.split("_")
     project_id = parts[1]

@@ -61,7 +61,6 @@ async def make_project_desc(message: Message, state: FSMContext) -> None:
     project_data = response.json()
     project_id = project_data["project_id"]
 
-    # 3️⃣ Клавиатура возврата
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [

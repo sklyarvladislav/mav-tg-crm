@@ -13,43 +13,66 @@ from fastapi import status
 router = Router()
 
 
+async def get_user_role(project_id: str, user_id: int) -> str:
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                f"http://web:80/participant/{project_id}/user/{user_id}/role"
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()["role"]
+        except Exception:
+            pass
+    return "USER"
+
+
 @router.callback_query(F.data.startswith("settings_"))
 async def project_settings(callback: CallbackQuery) -> None:
     project_id = callback.data.replace("settings_", "")
+    user_id = callback.from_user.id
 
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="✏️ Изменить название",
-                    callback_data=f"edit_name_{project_id}",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="📝 Изменить описание",
-                    callback_data=f"edit_desc_{project_id}",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🔄 Изменить статус",
-                    callback_data=f"change_status_{project_id}",
-                )
-            ],
+    user_role = await get_user_role(project_id, user_id)
+
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="✏️ Изменить название",
+                callback_data=f"edit_name_{project_id}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="📝 Изменить описание",
+                callback_data=f"edit_desc_{project_id}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔄 Изменить статус",
+                callback_data=f"change_status_{project_id}",
+            )
+        ],
+    ]
+
+    if user_role == "OWNER":
+        buttons.append(
             [
                 InlineKeyboardButton(
                     text="🗑️ Удалить проект",
                     callback_data=f"delete_project_{project_id}",
                 )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="⬅️ Назад", callback_data=f"project_{project_id}"
-                )
-            ],
+            ]
+        )
+
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text="⬅️ Назад", callback_data=f"project_{project_id}"
+            )
         ]
     )
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
     await callback.message.edit_text(
         "⚙️ Настройки проекта:", reply_markup=keyboard
