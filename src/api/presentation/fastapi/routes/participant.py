@@ -67,6 +67,29 @@ async def get_project_participants(
     ]
 
 
+@router.get("/{project_id}/user/{user_id}/role")
+async def get_user_role(
+    project_id: UUID,
+    user_id: int,
+    session: FromDishka[AsyncSession],
+) -> dict:
+    """Получить роль пользователя в проекте"""
+    stmt = select(ProjectParticipant).where(
+        ProjectParticipant.project_id == project_id,
+        ProjectParticipant.user_id == user_id,
+    )
+
+    result = await session.execute(stmt)
+    participant = result.scalar_one_or_none()
+
+    if not participant:
+        raise HTTPException(
+            status_code=404, detail="User not found in project"
+        )
+
+    return {"role": participant.role}
+
+
 @router.delete("/{project_id}/{user_id}")
 async def delete_participant(
     project_id: UUID,

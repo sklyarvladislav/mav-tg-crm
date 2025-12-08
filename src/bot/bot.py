@@ -17,6 +17,7 @@ from app.handlers.document import (
     open_document_router,
 )
 from app.handlers.participant import (
+    change_participant_router,
     delete_participant_router,
     get_participant_router,
     invite_participant_router,
@@ -78,6 +79,7 @@ async def main() -> None:
         get_project_router,
         delete_project_router,
         # participant
+        change_participant_router,
         get_participant_router,
         open_participant_router,
         invite_participant_router,

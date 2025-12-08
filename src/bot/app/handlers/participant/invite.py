@@ -9,9 +9,9 @@ from aiogram.types import (
 router = Router()
 
 
-@router.callback_query(F.data.startswith("invite_"))
+@router.callback_query(F.data.startswith("ip_"))
 async def invite(callback: CallbackQuery) -> None:
-    project_id = callback.data.replace("invite_", "")
+    project_id = callback.data.replace("ip_", "")
 
     try:
         # создаем токен на сервере
@@ -27,7 +27,7 @@ async def invite(callback: CallbackQuery) -> None:
 
         bot_info = await callback.bot.get_me()
         bot_username = bot_info.username
-        invite_link = f"https://t.me/{bot_username}?start=join_{token}"
+        ip_link = f"https://t.me/{bot_username}?start=join_{token}"
 
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
@@ -42,7 +42,7 @@ async def invite(callback: CallbackQuery) -> None:
 
         await callback.message.edit_text(
             "Отправьте эту ссылку пользователю, которого хотите добавить:\n"
-            f"{invite_link}",
+            f"{ip_link}",
             reply_markup=keyboard,
         )
 
