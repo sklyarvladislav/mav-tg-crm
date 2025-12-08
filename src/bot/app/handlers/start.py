@@ -14,13 +14,11 @@ async def cmd_start(message: Message) -> None:
     user_id = message.from_user.id
 
     async with httpx.AsyncClient() as client:
-        # Проверяем, есть ли пользователь в базе
         response = await client.get(f"http://web:80/user/{user_id}")
 
     if response.status_code == status.HTTP_200_OK:
         user_data = response.json()
 
-        # Проверяем, пришёл ли токен приглашения
         if text.startswith("/start join_"):
             token = text.split("join_")[1]
             async with httpx.AsyncClient() as client2:
@@ -46,7 +44,6 @@ async def cmd_start(message: Message) -> None:
 async def about_command(message: Message) -> None:
     photo_url = "https://i.postimg.cc/59gnGYX9/image-2025-09-28-18-29-25.png"
 
-    # Клавиатура с кнопками-ссылками на профили создателей
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
