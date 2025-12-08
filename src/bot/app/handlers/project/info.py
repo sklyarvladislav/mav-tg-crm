@@ -14,7 +14,6 @@ logger = get_logger()
 
 
 async def get_user_role(project_id: str, user_id: int) -> str:
-    """Получает роль пользователя через новый endpoint"""
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"http://web:80/participant/{project_id}/user/{user_id}/role"

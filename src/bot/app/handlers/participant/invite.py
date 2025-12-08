@@ -1,10 +1,13 @@
+import urllib.parse
+
 import httpx
-from aiogram import F, Router
+from aiogram import F, Router, html
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
+from fastapi import status
 
 router = Router()
 
@@ -14,39 +17,48 @@ async def invite(callback: CallbackQuery) -> None:
     project_id = callback.data.replace("ip_", "")
 
     try:
-        # создаем токен на сервере
         async with httpx.AsyncClient() as client:
+            project_resp = await client.get(
+                f"http://web:80/project/{project_id}"
+            )
+            project_name = "проект"
+            if project_resp.status_code == status.HTTP_200_OK:
+                project_data = project_resp.json()
+                project_name = project_data.get("name", "проект")
+
             r = await client.post(f"http://web:80/project/{project_id}/invite")
-            r.raise_for_status()  # проверяем успешность запроса
+            r.raise_for_status()
+            token = r.json().get("token")
 
-        data = r.json()
-        token = data.get("token")
-        if not token:
-            await callback.message.answer("❌ Не удалось создать приглашение.")
-            return
+            if not token:
+                return
 
-        bot_info = await callback.bot.get_me()
-        bot_username = bot_info.username
-        ip_link = f"https://t.me/{bot_username}?start=join_{token}"
+            bot_info = await callback.bot.get_me()
 
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="⬅️ Назад",
-                        callback_data=f"get_participant_{project_id}",
-                    )
+            invite_url = f"https://t.me/{bot_info.username}?start=join_{token}"
+
+            share_url = (
+                f"https://t.me/share/url?url={urllib.parse.quote(invite_url)}"
+            )
+
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text="📨 Отправить", url=share_url)],
+                    [
+                        InlineKeyboardButton(
+                            text="⬅️ Назад",
+                            callback_data=f"get_participant_{project_id}",
+                        )
+                    ],
                 ]
-            ]
-        )
+            )
 
-        await callback.message.edit_text(
-            "Отправьте эту ссылку пользователю, которого хотите добавить:\n"
-            f"{ip_link}",
-            reply_markup=keyboard,
-        )
+            await callback.message.edit_text(
+                f"🔗 <b>Приглашение в проект «{project_name}»</b>\n\n"
+                f"Ссылка для вступления:\n{html.code(invite_url)}",
+                reply_markup=keyboard,
+                parse_mode="HTML",
+            )
 
-    except httpx.HTTPError as e:
-        await callback.message.answer(
-            f"❌ Ошибка при создании приглашения: {e}"
-        )
+    except Exception as e:
+        await callback.message.answer(f"Ошибка: {e}")

@@ -28,6 +28,17 @@ async def send_projects_list(
         return
 
     projects = response.json()
+
+    status_priority = {
+        "В работе": 1,
+        "На паузе": 2,
+        "Выполнен": 3,
+        "Отменен": 4,
+    }
+    projects.sort(
+        key=lambda p: (status_priority.get(p.get("status"), 99), p.get("name"))
+    )
+
     keyboard = []
 
     status_emoji = {
