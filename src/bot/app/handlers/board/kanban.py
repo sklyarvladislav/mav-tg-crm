@@ -20,25 +20,27 @@ def generate_kanban_image(
     """Generate a Kanban board visualization as an image."""
 
     # Constants for layout
-    COLUMN_WIDTH = 300
-    COLUMN_PADDING = 20
-    HEADER_HEIGHT = 80
-    TASK_HEIGHT = 100
-    TASK_PADDING = 10
-    FOOTER_HEIGHT = 50
+    column_width = 300
+    column_padding = 20
+    header_height = 80
+    task_height = 100
+    task_padding = 10
+    footer_height = 50
+    max_tasks_per_column = 10
+    max_task_name_length = 30
 
     # Colors
-    BG_COLOR = (248, 249, 250)
-    COLUMN_BG = (255, 255, 255)
-    COLUMN_BORDER = (222, 226, 230)
-    HEADER_BG = (52, 58, 64)
-    HEADER_TEXT = (255, 255, 255)
-    TEXT_COLOR = (33, 37, 41)
-    TASK_BG = (233, 236, 239)
+    bg_color = (248, 249, 250)
+    column_bg = (255, 255, 255)
+    column_border = (222, 226, 230)
+    header_bg = (52, 58, 64)
+    header_text = (255, 255, 255)
+    text_color = (33, 37, 41)
+    task_bg = (233, 236, 239)
 
     # Calculate dimensions
     num_columns = max(len(columns), 1)
-    width = (COLUMN_WIDTH + COLUMN_PADDING) * num_columns + COLUMN_PADDING
+    width = (column_width + column_padding) * num_columns + column_padding
 
     # Group tasks by column
     tasks_by_column = {}
@@ -55,13 +57,13 @@ def generate_kanban_image(
         or [0]
     )
     height = (
-        HEADER_HEIGHT
-        + (TASK_HEIGHT + TASK_PADDING) * max(max_tasks, 1)
-        + FOOTER_HEIGHT
+        header_height
+        + (task_height + task_padding) * max(max_tasks, 1)
+        + footer_height
     )
 
     # Create image
-    img = Image.new("RGB", (width, height), BG_COLOR)
+    img = Image.new("RGB", (width, height), bg_color)
     draw = ImageDraw.Draw(img)
 
     # Try to use a default font, fall back to default if not available
@@ -75,13 +77,13 @@ def generate_kanban_image(
         task_font = ImageFont.truetype(
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14
         )
-    except Exception:
+    except (OSError, IOError):
         title_font = ImageFont.load_default()
         header_font = ImageFont.load_default()
         task_font = ImageFont.load_default()
 
     # Draw header with board name
-    draw.rectangle([(0, 0), (width, HEADER_HEIGHT)], fill=HEADER_BG)
+    draw.rectangle([(0, 0), (width, header_height)], fill=header_bg)
 
     # Center the board name
     title_text = f"Kanban: {board_name}"
@@ -90,68 +92,66 @@ def generate_kanban_image(
     draw.text(
         ((width - title_width) // 2, 25),
         title_text,
-        fill=HEADER_TEXT,
+        fill=header_text,
         font=title_font,
     )
 
     # Draw columns
     for i, column in enumerate(columns):
-        x_offset = COLUMN_PADDING + i * (COLUMN_WIDTH + COLUMN_PADDING)
-        y_offset = HEADER_HEIGHT + COLUMN_PADDING
+        x_offset = column_padding + i * (column_width + column_padding)
+        y_offset = header_height + column_padding
 
         # Draw column background
         column_rect = [
             (x_offset, y_offset),
-            (x_offset + COLUMN_WIDTH, height - FOOTER_HEIGHT),
+            (x_offset + column_width, height - footer_height),
         ]
         draw.rectangle(
-            column_rect, fill=COLUMN_BG, outline=COLUMN_BORDER, width=2
+            column_rect, fill=column_bg, outline=column_border, width=2
         )
 
         # Draw column header
         column_header_rect = [
             (x_offset + 5, y_offset + 5),
-            (x_offset + COLUMN_WIDTH - 5, y_offset + 40),
+            (x_offset + column_width - 5, y_offset + 40),
         ]
-        draw.rectangle(column_header_rect, fill=HEADER_BG)
+        draw.rectangle(column_header_rect, fill=header_bg)
 
         # Column name
         column_name = column["name"]
         column_tasks = tasks_by_column.get(column["column_id"], [])
-        header_text = f"{column_name} ({len(column_tasks)})"
+        header_text_str = f"{column_name} ({len(column_tasks)})"
 
         # Center text in column header
-        header_bbox = draw.textbbox((0, 0), header_text, font=header_font)
+        header_bbox = draw.textbbox((0, 0), header_text_str, font=header_font)
         header_width = header_bbox[2] - header_bbox[0]
-        text_x = x_offset + (COLUMN_WIDTH - header_width) // 2
+        text_x = x_offset + (column_width - header_width) // 2
         draw.text(
             (text_x, y_offset + 15),
-            header_text,
-            fill=HEADER_TEXT,
+            header_text_str,
+            fill=header_text,
             font=header_font,
         )
 
         # Draw tasks in column
         task_y = y_offset + 50
-        for task in column_tasks[:10]:  # Limit to 10 tasks per column
+        for task in column_tasks[:max_tasks_per_column]:
             task_rect = [
                 (x_offset + 10, task_y),
-                (x_offset + COLUMN_WIDTH - 10, task_y + TASK_HEIGHT - 10),
+                (x_offset + column_width - 10, task_y + task_height - 10),
             ]
             draw.rectangle(
-                task_rect, fill=TASK_BG, outline=COLUMN_BORDER, width=1
+                task_rect, fill=task_bg, outline=column_border, width=1
             )
 
             # Task name (truncate if too long)
-            task_name = (
-                task["name"][:30] + "..."
-                if len(task["name"]) > 30
-                else task["name"]
-            )
+            task_name = task["name"]
+            if len(task_name) > max_task_name_length:
+                task_name = task_name[:max_task_name_length] + "..."
             draw.text(
                 (x_offset + 15, task_y + 10),
                 task_name,
-                fill=TEXT_COLOR,
+                fill=text_color,
                 font=task_font,
             )
 
@@ -172,18 +172,18 @@ def generate_kanban_image(
                 draw.text(
                     (x_offset + 30, task_y + 32),
                     priority,
-                    fill=TEXT_COLOR,
+                    fill=text_color,
                     font=task_font,
                 )
 
-            task_y += TASK_HEIGHT
+            task_y += task_height
 
         # If there are more tasks, show indicator
-        if len(column_tasks) > 10:
+        if len(column_tasks) > max_tasks_per_column:
             draw.text(
                 (x_offset + 15, task_y + 5),
-                f"+ {len(column_tasks) - 10} more...",
-                fill=TEXT_COLOR,
+                f"+ {len(column_tasks) - max_tasks_per_column} more...",
+                fill=text_color,
                 font=task_font,
             )
 

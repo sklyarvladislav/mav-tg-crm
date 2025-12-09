@@ -279,6 +279,7 @@ async def skip_deadline(callback: CallbackQuery, state: FSMContext) -> None:
 async def enter_deadline(message: Message, state: FSMContext) -> None:
     deadline_text = message.text.lower()
     deadline_value = None
+    full_date_parts = 3
 
     if deadline_text != "нет":
         try:
@@ -287,7 +288,7 @@ async def enter_deadline(message: Message, state: FSMContext) -> None:
 
             # Try DD-MM-YYYY format first
             parts = message.text.split("-")
-            if len(parts) == 3:  # noqa: PLR2004
+            if len(parts) == full_date_parts:
                 deadline_value = (
                     datetime.strptime(message.text, "%d-%m-%Y")
                     .replace(tzinfo=UTC)
