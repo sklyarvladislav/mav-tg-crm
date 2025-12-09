@@ -171,7 +171,7 @@ async def set_task_executor(callback: CallbackQuery) -> None:
                     f"Название: {task['name']}\n"
                     f"Описание: {task['text']}\n"
                     f"Приоритет: {task['priority']}\n"
-                    f"Дедлайн: {task.get('deadline') or 'Не указан'}",
+                    f"Дедлайн: {task.get('deadline') or 'Без дедлайна'}",
                 )
             except Exception as e:
                 logger.error(f"Failed to send notification to executor: {e}")
