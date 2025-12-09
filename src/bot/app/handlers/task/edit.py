@@ -6,8 +6,10 @@ from aiogram.types import (
     InlineKeyboardMarkup,
 )
 from fastapi import status
+from structlog import get_logger
 
 router = Router()
+logger = get_logger()
 
 
 @router.callback_query(F.data.startswith("edit_task_status_"))
@@ -142,14 +144,38 @@ async def set_task_executor(callback: CallbackQuery) -> None:
     task_id = parts[3]
     user_id_str = parts[4]
 
-    user_id = int(user_id_str) if user_id_str != "none" else None
+    new_executor_id = int(user_id_str) if user_id_str != "none" else None
 
+    # Get task info before updating
     async with httpx.AsyncClient() as client:
+        task_resp = await client.get(f"http://web:80/task/{task_id}")
+        if task_resp.status_code != status.HTTP_200_OK:
+            await callback.answer("❌ Ошибка", show_alert=True)
+            return
+        task = task_resp.json()
+
         resp = await client.patch(
-            f"http://web:80/task/{task_id}", json={"user_id": user_id}
+            f"http://web:80/task/{task_id}", json={"user_id": new_executor_id}
         )
 
     if resp.status_code == status.HTTP_200_OK:
+        # Send notification to new executor if assigned and not self-assigning
+        assigner_id = callback.from_user.id
+        if new_executor_id and new_executor_id != assigner_id:
+            try:
+                from bot.bot import bot  # noqa: PLC0415
+
+                await bot.send_message(
+                    new_executor_id,
+                    f"📋 Вам назначена задача!\n\n"
+                    f"Название: {task['name']}\n"
+                    f"Описание: {task['text']}\n"
+                    f"Приоритет: {task['priority']}\n"
+                    f"Дедлайн: {task.get('deadline') or 'Не указан'}",
+                )
+            except Exception as e:
+                logger.error(f"Failed to send notification to executor: {e}")
+
         await callback.answer("✅ Исполнитель изменен")
         await callback.message.edit_text(
             "✅ Исполнитель успешно обновлен!",

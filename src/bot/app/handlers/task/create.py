@@ -431,8 +431,9 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
 
     task = resp.json()
 
-    # Send notification to executor if assigned
-    if executor_id:
+    # Send notification to executor if assigned and not self-assigning
+    creator_id = callback.from_user.id
+    if executor_id and executor_id != creator_id:
         try:
             from bot.bot import bot  # noqa: PLC0415
 
