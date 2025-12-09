@@ -67,8 +67,8 @@ async def column_name(message: Message, state: FSMContext) -> None:
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="⬅️ Назад к колонкам", 
-                        callback_data=f"get_columns_{board_id}"
+                        text="⬅️ Назад к колонкам",
+                        callback_data=f"get_columns_{board_id}",
                     )
                 ]
             ]

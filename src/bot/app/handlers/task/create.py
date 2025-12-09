@@ -32,13 +32,43 @@ class MakeTask(StatesGroup):
     executor = State()
 
 
+@router.callback_query(F.data.startswith("create_task_in_column_"))
+async def start_create_task_in_column(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
+    await callback.answer()
+    # Format: create_task_in_column_{column_id}_{board_id}
+    data_parts = callback.data.replace("create_task_in_column_", "").split("_")
+    column_id = data_parts[0]
+    board_id = data_parts[1]
+
+    # Get board info to get project_id
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://web:80/board/{board_id}")
+        if response.status_code != status.HTTP_200_OK:
+            await callback.message.answer(
+                "❌ Не удалось получить информацию о доске"
+            )
+            return
+        board = response.json()
+        project_id = board["project_id"]
+
+    await state.update_data(
+        project_id=project_id, board_id=board_id, column_id=column_id
+    )
+    await state.set_state(MakeTask.task_name)
+    await callback.message.answer("Введите название задачи:")
+
+
 @router.callback_query(F.data.startswith("create_task_"))
 async def start_create_task(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
     await callback.answer()
     project_id = callback.data.replace("create_task_", "")
-    await state.update_data(project_id=project_id)
+    await state.update_data(
+        project_id=project_id, board_id=None, column_id=None
+    )
 
     await state.set_state(MakeTask.task_name)
     await callback.message.answer("Введите название задачи:")
@@ -233,7 +263,7 @@ async def choose_priority(callback: CallbackQuery, state: FSMContext) -> None:
 
     await state.set_state(MakeTask.deadline)
     await callback.message.answer(
-        "Введите дедлайн (YYYY-MM-DD) или нажмите кнопку ниже:",
+        "Введите дедлайн (ДД-ММ или ДД-ММ-ГГГГ) или нажмите кнопку ниже:",
         reply_markup=keyboard,
     )
 
@@ -252,13 +282,35 @@ async def enter_deadline(message: Message, state: FSMContext) -> None:
 
     if deadline_text != "нет":
         try:
-            deadline_value = (
-                datetime.strptime(message.text, "%Y-%m-%d")
-                .replace(tzinfo=UTC)
-                .isoformat()
+            current_date = datetime.now(UTC)
+            current_year = current_date.year
+
+            # Try DD-MM-YYYY format first
+            parts = message.text.split("-")
+            if len(parts) == 3:  # noqa: PLR2004
+                deadline_value = (
+                    datetime.strptime(message.text, "%d-%m-%Y")
+                    .replace(tzinfo=UTC)
+                    .isoformat()
+                )
+            # Try DD-MM format
+            else:
+                day, month = map(int, parts)
+                year = current_year
+
+                # If the date is in the past (earlier than current month/day), assume next year
+                if month < current_date.month or (
+                    month == current_date.month and day < current_date.day
+                ):
+                    year = current_year + 1
+
+                deadline_value = datetime(
+                    year, month, day, tzinfo=UTC
+                ).isoformat()
+        except (ValueError, AttributeError):
+            await message.answer(
+                "❌ Неверный формат. Примеры: 25-12, 31-01-2025"
             )
-        except ValueError:
-            await message.answer("❌ Неверный формат. Пример: 2025-12-31")
             return
 
     await state.update_data(deadline=deadline_value)
@@ -336,6 +388,17 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
         tasks = resp.json() if resp.status_code == status.HTTP_200_OK else []
         number = len(tasks) + 1
 
+        # Get column info if column_id is provided to derive status
+        task_status = "NOT_DONE"
+        if data.get("column_id"):
+            column_resp = await client.get(
+                f"http://web:80/column/{data['column_id']}"
+            )
+            if column_resp.status_code == status.HTTP_200_OK:
+                column = column_resp.json()
+                # Use column name as status
+                task_status = column["name"]
+
         payload = {
             "task_id": str(uuid4()),
             "name": data.get("task_name") or "Без названия",
@@ -343,12 +406,12 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
             "document_id": data.get("document_id"),
             "user_id": executor_id,
             "project_id": data["project_id"],
-            "board_id": None,
-            "column_id": None,
+            "board_id": data.get("board_id"),
+            "column_id": data.get("column_id"),
             "number": number,
             "priority": data.get("priority") or "WITHOUT",
             "deadline": data.get("deadline"),
-            "status": "NOT_DONE",
+            "status": task_status,
         }
 
         resp = await client.post("http://web:80/task", json=payload)
@@ -359,6 +422,22 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
         return
 
     task = resp.json()
+
+    # Send notification to executor if assigned
+    if executor_id:
+        try:
+            from bot.bot import bot  # noqa: PLC0415
+
+            await bot.send_message(
+                executor_id,
+                f"📋 Вам назначена новая задача!\n\n"
+                f"Название: {task['name']}\n"
+                f"Описание: {task['text']}\n"
+                f"Приоритет: {task['priority']}\n"
+                f"Дедлайн: {task.get('deadline') or 'Не указан'}",
+            )
+        except Exception as e:
+            logger.error(f"Failed to send notification to executor: {e}")
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -375,7 +454,8 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
         f"✅ Задача создана!\n\n"
         f"Название: {task['name']}\n"
         f"Номер: {task.get('number', '-')}\n"
-        f"Приоритет: {task['priority']}",
+        f"Приоритет: {task['priority']}\n"
+        f"Статус: {task['status']}",
         reply_markup=keyboard,
     )
 

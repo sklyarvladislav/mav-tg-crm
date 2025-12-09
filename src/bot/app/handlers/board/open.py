@@ -34,6 +34,12 @@ async def open_board(callback: CallbackQuery) -> None:
             ],
             [
                 InlineKeyboardButton(
+                    text="🖼️ Kanban",
+                    callback_data=f"kanban_{board['board_id']}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
                     text="➕ Создать колонку",
                     callback_data=f"create_column_{board['board_id']}",
                 )
