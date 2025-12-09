@@ -78,7 +78,7 @@ def generate_kanban_image(
         task_font = ImageFont.truetype(
             "/usr/share/fonts/dejavu/DejaVuSans.ttf", 14
         )
-    except (OSError, IOError):
+    except OSError:
         # Fallback to default font (limited Unicode support)
         title_font = ImageFont.load_default()
         header_font = ImageFont.load_default()

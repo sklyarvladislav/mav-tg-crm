@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import (
@@ -380,7 +380,9 @@ async def start_executor_select(message: Message, state: FSMContext) -> None:
 
 
 @router.callback_query(MakeTask.executor, F.data.startswith("user_"))
-async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
+async def choose_executor(
+    callback: CallbackQuery, state: FSMContext, bot: Bot
+) -> None:
     await callback.answer()
 
     executor_raw = callback.data.replace("user_", "")
@@ -431,18 +433,17 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
 
     task = resp.json()
 
-    # Send notification to executor if assigned
-    if executor_id:
+    # Send notification to executor if assigned and not self-assigning
+    creator_id = callback.from_user.id
+    if executor_id and executor_id != creator_id:
         try:
-            from bot.bot import bot  # noqa: PLC0415
-
             await bot.send_message(
                 executor_id,
                 f"📋 Вам назначена новая задача!\n\n"
                 f"Название: {task['name']}\n"
                 f"Описание: {task['text']}\n"
                 f"Приоритет: {task['priority']}\n"
-                f"Дедлайн: {task.get('deadline') or 'Не указан'}",
+                f"Дедлайн: {task.get('deadline') or 'Без дедлайна'}",
             )
         except Exception as e:
             logger.error(f"Failed to send notification to executor: {e}")

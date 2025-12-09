@@ -6,8 +6,10 @@ from aiogram.types import (
     InlineKeyboardMarkup,
 )
 from fastapi import status
+from structlog import get_logger
 
 router = Router()
+logger = get_logger()
 
 
 async def get_user_role(project_id: str, user_id: int) -> str:
@@ -433,7 +435,8 @@ async def set_task_executor(callback: CallbackQuery) -> None:
         task_resp = await client.get(f"http://web:80/task/{task_id}")
         if task_resp.status_code != status.HTTP_200_OK:
             return
-        project_id = task_resp.json()["project_id"]
+        task = task_resp.json()
+        project_id = task["project_id"]
 
     role = await get_user_role(project_id, callback.from_user.id)
     if role not in ["OWNER", "ADMIN"]:
@@ -442,8 +445,10 @@ async def set_task_executor(callback: CallbackQuery) -> None:
 
     if user_raw == "none":
         payload = {"user_id": None}
+        new_executor_id = None
     else:
-        payload = {"user_id": int(user_raw)}
+        new_executor_id = int(user_raw)
+        payload = {"user_id": new_executor_id}
 
     async with httpx.AsyncClient() as client:
         resp = await client.patch(
@@ -455,6 +460,23 @@ async def set_task_executor(callback: CallbackQuery) -> None:
             "❌ Ошибка изменения исполнителя", show_alert=True
         )
         return
+
+    # Send notification to new executor if assigned and not self-assigning
+    assigner_id = callback.from_user.id
+    if new_executor_id and new_executor_id != assigner_id:
+        try:
+            from bot.bot import bot  # noqa: PLC0415
+
+            await bot.send_message(
+                new_executor_id,
+                f"📋 Вам назначена задача!\n\n"
+                f"Название: {task['name']}\n"
+                f"Описание: {task['text']}\n"
+                f"Приоритет: {task['priority']}\n"
+                f"Дедлайн: {task.get('deadline') or 'Без дедлайна'}",
+            )
+        except Exception as e:
+            logger.error(f"Failed to send notification to executor: {e}")
 
     await callback.message.edit_text(
         "✅ Исполнитель успешно изменен!",
