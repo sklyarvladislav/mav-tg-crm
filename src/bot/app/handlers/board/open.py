@@ -28,8 +28,14 @@ async def open_board(callback: CallbackQuery) -> None:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
+                    text="📋 Колонки",
+                    callback_data=f"get_columns_{board['board_id']}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
                     text="➕ Создать колонку",
-                    callback_data=f"make_column_{board['board_id']}",
+                    callback_data=f"create_column_{board['board_id']}",
                 )
             ],
             [

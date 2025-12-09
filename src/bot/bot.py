@@ -10,6 +10,13 @@ from app.handlers.board import (
     make_board_router,
     open_board_router,
 )
+from app.handlers.column import (
+    delete_column_router,
+    edit_column_router,
+    get_column_router,
+    make_column_router,
+    open_column_router,
+)
 from app.handlers.document import (
     delete_document_router,
     get_document_router,
@@ -94,6 +101,12 @@ async def main() -> None:
         get_board_router,
         delete_board_router,
         open_board_router,
+        # column
+        make_column_router,
+        get_column_router,
+        open_column_router,
+        edit_column_router,
+        delete_column_router,
         # task
         get_task_router,
         open_task_router,
