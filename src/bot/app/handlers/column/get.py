@@ -18,33 +18,31 @@ async def get_columns(callback: CallbackQuery) -> None:
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://web:80/column/{board_id}/columns")
 
-    if response.status_code != status.HTTP_200_OK:
-        await callback.message.answer("❌ Не удалось получить колонки")
-        return
+        if response.status_code != status.HTTP_200_OK:
+            await callback.message.answer("❌ Не удалось получить колонки")
+            return
 
-    columns = response.json()
+        columns = response.json()
 
-    # Get board info
-    async with httpx.AsyncClient() as client:
+        # Get board info
         board_response = await client.get(f"http://web:80/board/{board_id}")
-    
-    if board_response.status_code != status.HTTP_200_OK:
-        await callback.message.answer("❌ Не удалось получить доску")
-        return
-    
-    board = board_response.json()
+        
+        if board_response.status_code != status.HTTP_200_OK:
+            await callback.message.answer("❌ Не удалось получить доску")
+            return
+        
+        board = board_response.json()
 
-    # Get task counts for each column
-    async with httpx.AsyncClient() as client:
+        # Get task counts for each column
         tasks_response = await client.get(f"http://web:80/task/{board['project_id']}/tasks")
-    
-    task_counts = {}
-    if tasks_response.status_code == status.HTTP_200_OK:
-        tasks = tasks_response.json()
-        for task in tasks:
-            if task.get("column_id"):
-                column_id = task["column_id"]
-                task_counts[column_id] = task_counts.get(column_id, 0) + 1
+        
+        task_counts = {}
+        if tasks_response.status_code == status.HTTP_200_OK:
+            tasks = tasks_response.json()
+            for task in tasks:
+                if task.get("column_id"):
+                    column_id = task["column_id"]
+                    task_counts[column_id] = task_counts.get(column_id, 0) + 1
 
     keyboard = []
     

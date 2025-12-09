@@ -9,10 +9,8 @@ from aiogram.types import (
     Message,
 )
 from fastapi import status
-from structlog import get_logger
 
 router = Router()
-logger = get_logger()
 
 
 class MakeColumn(StatesGroup):
@@ -44,7 +42,6 @@ async def column_name(message: Message, state: FSMContext) -> None:
 
     if response.status_code == status.HTTP_200_OK:
         columns = response.json()
-        logger.info(columns)
         if columns:
             max_position = max(column["position"] for column in columns)
             position = max_position + 1
