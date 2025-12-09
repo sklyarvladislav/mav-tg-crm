@@ -66,18 +66,20 @@ def generate_kanban_image(
     img = Image.new("RGB", (width, height), bg_color)
     draw = ImageDraw.Draw(img)
 
-    # Try to use a default font, fall back to default if not available
+    # Load fonts - DejaVu fonts have excellent Unicode/Cyrillic support
+    # These are installed via ttf-dejavu package in Alpine Linux
     try:
         title_font = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24
+            "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf", 24
         )
         header_font = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18
+            "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf", 18
         )
         task_font = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14
+            "/usr/share/fonts/dejavu/DejaVuSans.ttf", 14
         )
     except (OSError, IOError):
+        # Fallback to default font (limited Unicode support)
         title_font = ImageFont.load_default()
         header_font = ImageFont.load_default()
         task_font = ImageFont.load_default()

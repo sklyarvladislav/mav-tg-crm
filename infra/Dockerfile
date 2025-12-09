@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1 \
     PROJECT_PATH=/app
 WORKDIR $PROJECT_PATH
 
-RUN apk update && apk add --no-cache python3~=3.12 git
+RUN apk update && apk add --no-cache python3~=3.12 git fontconfig ttf-dejavu
 
 # Устанавливаем зависимости (без проекта, только lockfile)
 RUN --mount=type=cache,target=/root/.cache/uv \
