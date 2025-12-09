@@ -63,14 +63,28 @@ async def open_task(callback: CallbackQuery) -> None:
                     or "Неизвестен"
                 )
 
+        # Get column name if task has column_id
+        column_name = None
+        if task.get("column_id"):
+            column_resp = await client.get(
+                f"http://web:80/column/{task['column_id']}"
+            )
+            if column_resp.status_code == status.HTTP_200_OK:
+                column = column_resp.json()
+                column_name = column["name"]
+
     deadline = task["deadline"] or "Без дедлайна"
 
-    status_map = {
-        "DONE": "✅ Выполнено",
-        "NOT_DONE": "Не выполнено",
-        "IN_PROGRESS": "В работе",
-    }
-    status_of_task = status_map.get(task["status"], task["status"])
+    # If task has column_id, use column name as status
+    if column_name:
+        status_of_task = f"📋 {column_name}"
+    else:
+        status_map = {
+            "DONE": "✅ Выполнено",
+            "NOT_DONE": "Не выполнено",
+            "IN_PROGRESS": "В работе",
+        }
+        status_of_task = status_map.get(task["status"], task["status"])
 
     priority_map = {
         "WITHOUT": "⚪ Без приоритета",
@@ -83,14 +97,26 @@ async def open_task(callback: CallbackQuery) -> None:
 
     buttons = []
 
-    buttons.append(
-        [
-            InlineKeyboardButton(
-                text="🔄 Изменить статус",
-                callback_data=f"ts_{task['task_id']}",
-            )
-        ]
-    )
+    # Only show status change if task is not attached to a column
+    if not task.get("column_id"):
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text="🔄 Изменить статус",
+                    callback_data=f"ts_{task['task_id']}",
+                )
+            ]
+        )
+    else:
+        # If task is attached to a board/column, allow changing column
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text="📋 Изменить колонку",
+                    callback_data=f"tc_{task['task_id']}",
+                )
+            ]
+        )
 
     if current_role in ["OWNER", "ADMIN"]:
         buttons.append(
@@ -432,6 +458,106 @@ async def set_task_executor(callback: CallbackQuery) -> None:
 
     await callback.message.edit_text(
         "✅ Исполнитель успешно изменен!",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="⬅️ Вернуться к задаче",
+                        callback_data=f"open_task_{task_id}",
+                    )
+                ]
+            ]
+        ),
+    )
+
+
+@router.callback_query(F.data.startswith("tc_"))
+async def change_task_column_menu(callback: CallbackQuery) -> None:
+    task_id = callback.data.replace("tc_", "")
+
+    async with httpx.AsyncClient() as client:
+        task_resp = await client.get(f"http://web:80/task/{task_id}")
+        if task_resp.status_code != status.HTTP_200_OK:
+            await callback.message.answer("❌ Ошибка получения задачи")
+            return
+        task = task_resp.json()
+        board_id = task.get("board_id")
+        current_column_id = task.get("column_id")
+
+        if not board_id:
+            await callback.answer(
+                "❌ Задача не привязана к доске", show_alert=True
+            )
+            return
+
+        # Get columns for this board
+        columns_resp = await client.get(
+            f"http://web:80/column/{board_id}/columns"
+        )
+        if columns_resp.status_code != status.HTTP_200_OK:
+            await callback.message.answer("❌ Не удалось получить колонки")
+            return
+
+    await callback.answer()
+
+    columns = columns_resp.json()
+    buttons = []
+
+    for column in columns:
+        prefix = "✅ " if column["column_id"] == current_column_id else ""
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{prefix}{column['name']}",
+                    callback_data=f"tcset_{task_id}_{column['column_id']}",
+                )
+            ]
+        )
+
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text="⬅️ Назад к задаче",
+                callback_data=f"open_task_{task_id}",
+            )
+        ]
+    )
+
+    await callback.message.edit_text(
+        "Выберите новую колонку:",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+    )
+
+
+@router.callback_query(F.data.startswith("tcset_"))
+async def set_task_column(callback: CallbackQuery) -> None:
+    data = callback.data.replace("tcset_", "")
+    task_id, column_id = data.split("_", maxsplit=1)
+
+    async with httpx.AsyncClient() as client:
+        # Get column name to update status
+        column_resp = await client.get(f"http://web:80/column/{column_id}")
+        if column_resp.status_code != status.HTTP_200_OK:
+            await callback.answer(
+                "❌ Ошибка получения колонки", show_alert=True
+            )
+            return
+
+        column = column_resp.json()
+        new_status = column["name"]
+
+        # Update task with new column and status
+        resp = await client.patch(
+            f"http://web:80/task/{task_id}",
+            json={"column_id": column_id, "status": new_status},
+        )
+
+    if resp.status_code != status.HTTP_200_OK:
+        await callback.answer("❌ Ошибка обновления колонки", show_alert=True)
+        return
+
+    await callback.message.edit_text(
+        "✅ Колонка успешно изменена!",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
                 [

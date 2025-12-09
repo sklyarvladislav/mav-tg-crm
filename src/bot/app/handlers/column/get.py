@@ -26,16 +26,18 @@ async def get_columns(callback: CallbackQuery) -> None:
 
         # Get board info
         board_response = await client.get(f"http://web:80/board/{board_id}")
-        
+
         if board_response.status_code != status.HTTP_200_OK:
             await callback.message.answer("❌ Не удалось получить доску")
             return
-        
+
         board = board_response.json()
 
         # Get task counts for each column
-        tasks_response = await client.get(f"http://web:80/task/{board['project_id']}/tasks")
-        
+        tasks_response = await client.get(
+            f"http://web:80/task/{board['project_id']}/tasks"
+        )
+
         task_counts = {}
         if tasks_response.status_code == status.HTTP_200_OK:
             tasks = tasks_response.json()
@@ -45,36 +47,44 @@ async def get_columns(callback: CallbackQuery) -> None:
                     task_counts[column_id] = task_counts.get(column_id, 0) + 1
 
     keyboard = []
-    
+
     if columns:
         for column in columns:
             task_count = task_counts.get(column["column_id"], 0)
-            keyboard.append([
-                InlineKeyboardButton(
-                    text=f"📋 {column['name']} ({task_count})",
-                    callback_data=f"open_column_{column['column_id']}",
-                )
-            ])
-    else:
-        keyboard.append([
-            InlineKeyboardButton(
-                text="📋 Колонок пока нет",
-                callback_data="no_columns",
+            keyboard.append(
+                [
+                    InlineKeyboardButton(
+                        text=f"📋 {column['name']} ({task_count})",
+                        callback_data=f"open_column_{column['column_id']}",
+                    )
+                ]
             )
-        ])
+    else:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text="📋 Колонок пока нет",
+                    callback_data="no_columns",
+                )
+            ]
+        )
 
-    keyboard.append([
-        InlineKeyboardButton(
-            text="➕ Создать колонку",
-            callback_data=f"create_column_{board_id}",
-        )
-    ])
-    keyboard.append([
-        InlineKeyboardButton(
-            text="⬅️ Назад",
-            callback_data=f"open_board_{board_id}",
-        )
-    ])
+    keyboard.append(
+        [
+            InlineKeyboardButton(
+                text="➕ Создать колонку",
+                callback_data=f"create_column_{board_id}",
+            )
+        ]
+    )
+    keyboard.append(
+        [
+            InlineKeyboardButton(
+                text="⬅️ Назад",
+                callback_data=f"open_board_{board_id}",
+            )
+        ]
+    )
 
     await callback.message.edit_text(
         f"📋 Колонки доски: {board['name']}\n\n"

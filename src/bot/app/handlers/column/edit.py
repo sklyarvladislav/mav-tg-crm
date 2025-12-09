@@ -24,17 +24,17 @@ async def start_edit_column(
     await callback.answer()
 
     column_id = callback.data.replace("edit_column_", "")
-    
+
     # Get current column info
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://web:80/column/{column_id}")
-    
+
     if response.status_code != status.HTTP_200_OK:
         await callback.message.answer("❌ Не удалось получить колонку")
         return
-    
+
     column = response.json()
-    
+
     await state.update_data(column_id=column_id, board_id=column["board_id"])
     await state.set_state(EditColumn.column_name)
     await callback.message.answer(
@@ -47,7 +47,6 @@ async def start_edit_column(
 async def edit_column_name(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     column_id = data["column_id"]
-    board_id = data["board_id"]
     new_name = message.text
 
     async with httpx.AsyncClient() as client:

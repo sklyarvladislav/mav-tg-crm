@@ -18,11 +18,11 @@ async def delete_column(callback: CallbackQuery) -> None:
     # Get column info to get board_id
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://web:80/column/{column_id}")
-    
+
     if response.status_code != status.HTTP_200_OK:
         await callback.message.answer("❌ Не удалось получить колонку")
         return
-    
+
     column = response.json()
     board_id = column["board_id"]
 
@@ -41,8 +41,7 @@ async def delete_column(callback: CallbackQuery) -> None:
             ]
         )
         await callback.message.edit_text(
-            f"✅ Колонка удалена!\n\n"
-            f"Название: {column['name']}",
+            f"✅ Колонка удалена!\n\nНазвание: {column['name']}",
             reply_markup=keyboard,
         )
     else:
