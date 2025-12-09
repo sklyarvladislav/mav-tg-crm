@@ -52,7 +52,7 @@ async def open_column(callback: CallbackQuery) -> None:
             [
                 InlineKeyboardButton(
                     text="➕ Создать задачу",
-                    callback_data=f"create_task_in_column_{column['column_id']}_{board_id}",
+                    callback_data=f"create_task_col_{column['column_id']}",
                 )
             ],
             [

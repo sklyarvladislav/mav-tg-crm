@@ -32,25 +32,32 @@ class MakeTask(StatesGroup):
     executor = State()
 
 
-@router.callback_query(F.data.startswith("create_task_in_column_"))
+@router.callback_query(F.data.startswith("create_task_col_"))
 async def start_create_task_in_column(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
     await callback.answer()
-    # Format: create_task_in_column_{column_id}_{board_id}
-    data_parts = callback.data.replace("create_task_in_column_", "").split("_")
-    column_id = data_parts[0]
-    board_id = data_parts[1]
+    # Format: create_task_col_{column_id}
+    column_id = callback.data.replace("create_task_col_", "")
 
-    # Get board info to get project_id
+    # Get column info to get board_id, then board info to get project_id
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://web:80/board/{board_id}")
-        if response.status_code != status.HTTP_200_OK:
+        column_response = await client.get(f"http://web:80/column/{column_id}")
+        if column_response.status_code != status.HTTP_200_OK:
+            await callback.message.answer(
+                "❌ Не удалось получить информацию о колонке"
+            )
+            return
+        column = column_response.json()
+        board_id = column["board_id"]
+
+        board_response = await client.get(f"http://web:80/board/{board_id}")
+        if board_response.status_code != status.HTTP_200_OK:
             await callback.message.answer(
                 "❌ Не удалось получить информацию о доске"
             )
             return
-        board = response.json()
+        board = board_response.json()
         project_id = board["project_id"]
 
     await state.update_data(
