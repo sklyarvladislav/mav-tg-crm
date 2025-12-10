@@ -13,6 +13,7 @@ dependencies = [
     "dynaconf>=3.2.11",
     "fastapi>=0.117.1",
     "httpx>=0.28.1",
+    "pillow>=10.3.0",
     "pre-commit>=4.3.0",
     "psycopg2-binary>=2.9.10",
     "ruff>=0.13.1",
@@ -31,7 +32,7 @@ select = [
     "TID", "ARG", "PLC", "PLE", "PLR", "PLW", "RUF",
 ]
 ignore = [
-    "UP006", "UP007", "D407", "PLC1901", "UP035", "COM812", "E501", "ARG001","RUF001"
+    "UP006", "UP007", "D407", "PLC1901", "UP035", "COM812", "E501", "ARG001","RUF001","RUF003", "C901", "PLR0915",
 ]
 unfixable = ["F401", "F841"]
 

@@ -28,8 +28,14 @@ async def open_board(callback: CallbackQuery) -> None:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="➕ Создать колонку",
-                    callback_data=f"make_column_{board['board_id']}",
+                    text="📋 Колонки",
+                    callback_data=f"get_columns_{board['board_id']}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🖼️ Kanban",
+                    callback_data=f"kanban_{board['board_id']}",
                 )
             ],
             [
@@ -47,10 +53,16 @@ async def open_board(callback: CallbackQuery) -> None:
         ]
     )
 
-    await callback.message.edit_text(
+    text = (
         f"🗄 Доска:\n\n"
         f"Название: {board['name']}\n"
         f"Количество задачек: {board['number_tasks']}\n"
-        f"Позиция: {board['position']}\n",
-        reply_markup=keyboard,
+        f"Позиция: {board['position']}\n"
     )
+
+    # Try to edit text if message has text, otherwise send new message
+    try:
+        await callback.message.edit_text(text, reply_markup=keyboard)
+    except Exception:
+        # If can't edit (e.g., message contains photo), send new message
+        await callback.message.answer(text, reply_markup=keyboard)

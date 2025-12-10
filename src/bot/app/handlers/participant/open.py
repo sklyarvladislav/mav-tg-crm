@@ -26,7 +26,6 @@ async def open_participant(callback: CallbackQuery) -> None:
 
     participants = resp_part.json()
 
-    # Ищем роль нужного пользователя
     participant_data = next(
         (p for p in participants if p["user_id"] == int(user_id)), None
     )

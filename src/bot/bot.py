@@ -7,8 +7,16 @@ from aiogram.types import BotCommand
 from app.handlers.board import (
     delete_board_router,
     get_board_router,
+    kanban_board_router,
     make_board_router,
     open_board_router,
+)
+from app.handlers.column import (
+    delete_column_router,
+    edit_column_router,
+    get_column_router,
+    make_column_router,
+    open_column_router,
 )
 from app.handlers.document import (
     delete_document_router,
@@ -17,6 +25,7 @@ from app.handlers.document import (
     open_document_router,
 )
 from app.handlers.participant import (
+    change_participant_router,
     delete_participant_router,
     get_participant_router,
     invite_participant_router,
@@ -32,6 +41,7 @@ from app.handlers.project import (
 from app.handlers.start import router as start_router
 from app.handlers.task import (
     delete_task_router,
+    edit_router,
     get_task_router,
     make_task_router,
     open_task_router,
@@ -78,6 +88,7 @@ async def main() -> None:
         get_project_router,
         delete_project_router,
         # participant
+        change_participant_router,
         get_participant_router,
         open_participant_router,
         invite_participant_router,
@@ -92,10 +103,18 @@ async def main() -> None:
         get_board_router,
         delete_board_router,
         open_board_router,
+        kanban_board_router,
+        # column
+        make_column_router,
+        get_column_router,
+        open_column_router,
+        edit_column_router,
+        delete_column_router,
         # task
         get_task_router,
         open_task_router,
         make_task_router,
+        edit_router,
         delete_task_router,
         # unknownmes
         unknownmes_router,

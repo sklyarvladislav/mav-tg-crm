@@ -11,10 +11,10 @@ router = Router()
 
 
 @router.callback_query(F.data.startswith("get_tasks_"))
-async def show_boards(callback: CallbackQuery) -> None:
+async def show_tasks(callback: CallbackQuery) -> None:
     await callback.answer()
-
     project_id = callback.data.replace("get_tasks_", "")
+    current_user_id = callback.from_user.id
 
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://web:80/task/{project_id}/tasks")
@@ -25,15 +25,36 @@ async def show_boards(callback: CallbackQuery) -> None:
 
     tasks = response.json()
 
-    keyboard_buttons = [
-        [
-            InlineKeyboardButton(
-                text=f" 📝 {task['name']}",
-                callback_data=f"open_task_{task['task_id']}",
-            )
-        ]
-        for task in tasks
-    ]
+    tasks.sort(key=lambda x: x.get("number", 0))
+
+    priority_emoji = {
+        "WITHOUT": "⚪",
+        "LOW": "🟢",
+        "MEDIUM": "🟡",
+        "HIGH": "🔴",
+        "FROZEN": "🧊",
+    }
+
+    keyboard_buttons = []
+
+    for task in tasks:
+        p_emoji = priority_emoji.get(task.get("priority", "WITHOUT"), "⚪")
+
+        me_mark = (
+            " (Исполнитель)" if task.get("user_id") == current_user_id else ""
+        )
+
+        btn_text = f"{p_emoji} {task['name']}{me_mark}"
+
+        keyboard_buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=btn_text,
+                    callback_data=f"open_task_{task['task_id']}",
+                )
+            ]
+        )
+
     keyboard_buttons.append(
         [
             InlineKeyboardButton(

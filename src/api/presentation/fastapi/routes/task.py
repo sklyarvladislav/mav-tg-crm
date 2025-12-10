@@ -2,7 +2,7 @@ from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog import get_logger
 
@@ -15,7 +15,6 @@ from src.api.infra.database.tables.task import Task
 from src.api.usecases.task import (
     DeleteTaskUsecase,
     GetTaskUsecase,
-    UpdateTaskUsecase,
 )
 
 logger = get_logger()
@@ -110,8 +109,51 @@ async def delete_task(
 
 @router.patch("/{task_id}")
 async def update_task(
-    usecase: FromDishka[UpdateTaskUsecase],
     task_id: UUID,
     data: TaskUpdateSchema,
+    session: FromDishka[AsyncSession],
 ) -> TaskSchema:
-    return await usecase(task_id=task_id, data=data)
+    update_data = data.model_dump(exclude_unset=True)
+
+    if not update_data:
+        async with session.begin():
+            t = await session.get(Task, task_id)
+            return TaskSchema(
+                task_id=t.task_id,
+                name=t.name,
+                text=t.text,
+                document_id=t.document_id,
+                user_id=t.user_id,
+                project_id=t.project_id,
+                board_id=t.board_id,
+                column_id=t.column_id,
+                deadline=t.deadline,
+                status=t.status,
+                priority=t.priority,
+                number=t.number,
+            )
+
+    async with session.begin():
+        stmt = (
+            update(Task)
+            .where(Task.task_id == task_id)
+            .values(**update_data)
+            .returning(Task)
+        )
+        result = await session.execute(stmt)
+        updated_task = result.scalar_one()
+
+    return TaskSchema(
+        task_id=updated_task.task_id,
+        name=updated_task.name,
+        text=updated_task.text,
+        document_id=updated_task.document_id,
+        user_id=updated_task.user_id,
+        project_id=updated_task.project_id,
+        board_id=updated_task.board_id,
+        column_id=updated_task.column_id,
+        deadline=updated_task.deadline,
+        status=updated_task.status,
+        priority=updated_task.priority,
+        number=updated_task.number,
+    )

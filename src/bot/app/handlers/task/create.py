@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import (
@@ -32,13 +32,50 @@ class MakeTask(StatesGroup):
     executor = State()
 
 
+@router.callback_query(F.data.startswith("create_task_col_"))
+async def start_create_task_in_column(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
+    await callback.answer()
+    # Format: create_task_col_{column_id}
+    column_id = callback.data.replace("create_task_col_", "")
+
+    # Get column info to get board_id, then board info to get project_id
+    async with httpx.AsyncClient() as client:
+        column_response = await client.get(f"http://web:80/column/{column_id}")
+        if column_response.status_code != status.HTTP_200_OK:
+            await callback.message.answer(
+                "❌ Не удалось получить информацию о колонке"
+            )
+            return
+        column = column_response.json()
+        board_id = column["board_id"]
+
+        board_response = await client.get(f"http://web:80/board/{board_id}")
+        if board_response.status_code != status.HTTP_200_OK:
+            await callback.message.answer(
+                "❌ Не удалось получить информацию о доске"
+            )
+            return
+        board = board_response.json()
+        project_id = board["project_id"]
+
+    await state.update_data(
+        project_id=project_id, board_id=board_id, column_id=column_id
+    )
+    await state.set_state(MakeTask.task_name)
+    await callback.message.answer("Введите название задачи:")
+
+
 @router.callback_query(F.data.startswith("create_task_"))
 async def start_create_task(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
     await callback.answer()
     project_id = callback.data.replace("create_task_", "")
-    await state.update_data(project_id=project_id)
+    await state.update_data(
+        project_id=project_id, board_id=None, column_id=None
+    )
 
     await state.set_state(MakeTask.task_name)
     await callback.message.answer("Введите название задачи:")
@@ -221,68 +258,131 @@ async def choose_priority(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.update_data(priority=callback.data.replace("priority_", ""))
 
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🚫 Нет (без дедлайна)", callback_data="deadline_none"
+                )
+            ]
+        ]
+    )
+
     await state.set_state(MakeTask.deadline)
-    await callback.message.answer("Введите дедлайн (YYYY-MM-DD) или «нет»:")
+    await callback.message.answer(
+        "Введите дедлайн (ДД-ММ или ДД-ММ-ГГГГ) или нажмите кнопку ниже:",
+        reply_markup=keyboard,
+    )
+
+
+@router.callback_query(MakeTask.deadline, F.data == "deadline_none")
+async def skip_deadline(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await state.update_data(deadline=None)
+    await start_executor_select(callback.message, state)
 
 
 @router.message(MakeTask.deadline)
 async def enter_deadline(message: Message, state: FSMContext) -> None:
     deadline_text = message.text.lower()
     deadline_value = None
+    full_date_parts = 3
 
     if deadline_text != "нет":
         try:
-            deadline_value = (
-                datetime.strptime(message.text, "%Y-%m-%d")
-                .replace(tzinfo=UTC)
-                .isoformat()
+            current_date = datetime.now(UTC)
+            current_year = current_date.year
+
+            # Try DD-MM-YYYY format first
+            parts = message.text.split("-")
+            if len(parts) == full_date_parts:
+                deadline_value = (
+                    datetime.strptime(message.text, "%d-%m-%Y")
+                    .replace(tzinfo=UTC)
+                    .isoformat()
+                )
+            # Try DD-MM format
+            else:
+                day, month = map(int, parts)
+                year = current_year
+
+                # If the date is in the past (earlier than current month/day), assume next year
+                if month < current_date.month or (
+                    month == current_date.month and day < current_date.day
+                ):
+                    year = current_year + 1
+
+                deadline_value = datetime(
+                    year, month, day, tzinfo=UTC
+                ).isoformat()
+        except (ValueError, AttributeError):
+            await message.answer(
+                "❌ Неверный формат. Примеры: 25-12, 31-01-2025"
             )
-        except ValueError:
-            await message.answer("❌ Неверный формат. Пример: 2025-12-31")
             return
 
     await state.update_data(deadline=deadline_value)
+    await start_executor_select(message, state)
+
+
+async def start_executor_select(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    project_id = data["project_id"]
+
+    keyboard_buttons = []
 
     async with httpx.AsyncClient() as client:
-        resp = await client.get("http://web:80/user/list")
+        resp = await client.get(
+            f"http://web:80/participant/{project_id}/participants"
+        )
 
-    if resp.status_code == status.HTTP_200_OK:
-        users = resp.json()
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=user["full_name"],
-                        callback_data=f"user_{user['user_id']}",
+        if resp.status_code == status.HTTP_200_OK:
+            participants = resp.json()
+
+            for p in participants:
+                user_id = p["user_id"]
+                role = p["role"]
+
+                user_resp = await client.get(f"http://web:80/user/{user_id}")
+                if user_resp.status_code == status.HTTP_200_OK:
+                    user_data = user_resp.json()
+                    name = (
+                        user_data.get("username")
+                        or user_data.get("short_name")
+                        or f"ID {user_id}"
                     )
-                ]
-                for user in users
-            ]
-            + [
-                [
-                    InlineKeyboardButton(
-                        text="Без исполнителя", callback_data="user_none"
-                    )
-                ]
-            ]
-        )
-    else:
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="Без исполнителя", callback_data="user_none"
-                    )
-                ]
-            ]
-        )
+                else:
+                    name = f"ID {user_id}"
+
+                keyboard_buttons.append(
+                    [
+                        InlineKeyboardButton(
+                            text=f"{name} ({role})",
+                            callback_data=f"user_{user_id}",
+                        )
+                    ]
+                )
+        else:
+            await message.answer("⚠️ Не удалось загрузить участников проекта.")
+
+    keyboard_buttons.append(
+        [
+            InlineKeyboardButton(
+                text="🚫 Без исполнителя", callback_data="user_none"
+            )
+        ]
+    )
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
     await state.set_state(MakeTask.executor)
     await message.answer("Выберите исполнителя:", reply_markup=keyboard)
 
 
 @router.callback_query(MakeTask.executor, F.data.startswith("user_"))
-async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
+async def choose_executor(
+    callback: CallbackQuery, state: FSMContext, bot: Bot
+) -> None:
     await callback.answer()
 
     executor_raw = callback.data.replace("user_", "")
@@ -297,7 +397,18 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
         )
         tasks = resp.json() if resp.status_code == status.HTTP_200_OK else []
         number = len(tasks) + 1
-        logger.info(number)
+
+        # Get column info if column_id is provided to derive status
+        task_status = "NOT_DONE"
+        if data.get("column_id"):
+            column_resp = await client.get(
+                f"http://web:80/column/{data['column_id']}"
+            )
+            if column_resp.status_code == status.HTTP_200_OK:
+                column = column_resp.json()
+                # Use column name as status
+                task_status = column["name"]
+
         payload = {
             "task_id": str(uuid4()),
             "name": data.get("task_name") or "Без названия",
@@ -305,12 +416,12 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
             "document_id": data.get("document_id"),
             "user_id": executor_id,
             "project_id": data["project_id"],
-            "board_id": None,
-            "column_id": None,
+            "board_id": data.get("board_id"),
+            "column_id": data.get("column_id"),
             "number": number,
             "priority": data.get("priority") or "WITHOUT",
             "deadline": data.get("deadline"),
-            "status": "NOT_DONE",
+            "status": task_status,
         }
 
         resp = await client.post("http://web:80/task", json=payload)
@@ -321,6 +432,21 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
         return
 
     task = resp.json()
+
+    # Send notification to executor if assigned and not self-assigning
+    creator_id = callback.from_user.id
+    if executor_id and executor_id != creator_id:
+        try:
+            await bot.send_message(
+                executor_id,
+                f"📋 Вам назначена новая задача!\n\n"
+                f"Название: {task['name']}\n"
+                f"Описание: {task['text']}\n"
+                f"Приоритет: {task['priority']}\n"
+                f"Дедлайн: {task.get('deadline') or 'Без дедлайна'}",
+            )
+        except Exception as e:
+            logger.error(f"Failed to send notification to executor: {e}")
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -336,9 +462,9 @@ async def choose_executor(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.answer(
         f"✅ Задача создана!\n\n"
         f"Название: {task['name']}\n"
-        f"ID: {task['task_id']}\n"
+        f"Номер: {task.get('number', '-')}\n"
         f"Приоритет: {task['priority']}\n"
-        f"Номер: {task['number']}",
+        f"Статус: {task['status']}",
         reply_markup=keyboard,
     )
 

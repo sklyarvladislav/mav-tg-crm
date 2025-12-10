@@ -2,6 +2,7 @@ from uuid import UUID
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog import get_logger
 
@@ -43,6 +44,28 @@ async def create_column(
         name=created.name,
         position=created.position,
     )
+
+
+@router.get("/{board_id}/columns")
+async def get_board_columns(
+    board_id: UUID,
+    session: FromDishka[AsyncSession],
+) -> list[BoardColumnSchema]:
+    async with session.begin():
+        result = await session.execute(
+            select(BoardColumn).where(BoardColumn.board_id == board_id)
+        )
+        columns = result.scalars().all()
+
+    return [
+        BoardColumnSchema(
+            column_id=column.column_id,
+            board_id=column.board_id,
+            name=column.name,
+            position=column.position,
+        )
+        for column in columns
+    ]
 
 
 @router.get("/{column_id}")
